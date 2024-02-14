@@ -47,7 +47,6 @@ async def get_chessboard():
         """
 
 
-
 @app.post("/update", response_class=HTMLResponse)
 async def update_chessboard(mouvement_requested: str = Form(...), chess_positions: str = Form(...)):
     pieces_list = parse_pieces_input(chess_positions)
@@ -75,6 +74,12 @@ def do_mouvement(pieces_list, mouvement_requested):
     postions = mouvement_requested.split('-')
     initial_position = postions[0]
     target_position = postions[1]
+
+    if ord(target_position[0]) < ord("a") or ord(target_position[0]) > ord("h"):
+        return pieces_list
+
+    if int(target_position[1:]) < 1 or int(target_position[1:]) > 8:
+        return pieces_list
 
     for piece, color, position in pieces_list:
         if position == initial_position:
