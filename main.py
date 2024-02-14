@@ -15,16 +15,20 @@ app.add_middleware(
 )
 
 initial_positions = [
-    ('R', 'B', 'a1'), ('N', 'B', 'b1'), ('B', 'B', 'c1'), ('Q', 'B', 'd1'),
-    ('K', 'B', 'e1'), ('B', 'B', 'f1'), ('N', 'B', 'g1'), ('R', 'B', 'h1'),
-    ('P', 'B', 'a2'), ('P', 'B', 'b2'), ('P', 'B', 'c2'), ('P', 'B', 'd2'),
-    ('P', 'B', 'e2'), ('P', 'B', 'f2'), ('P', 'B', 'g2'), ('P', 'B', 'h2'),
-    ('P', 'N', 'a7'), ('P', 'N', 'b7'), ('P', 'N', 'c7'), ('P', 'N', 'd7'),
-    ('P', 'N', 'e7'), ('P', 'N', 'f7'), ('P', 'N', 'g7'), ('P', 'N', 'h7'),
-    ('R', 'N', 'a8'), ('N', 'N', 'b8'), ('B', 'N', 'c8'), ('Q', 'N', 'd8'),
-    ('K', 'N', 'e8'), ('B', 'N', 'f8'), ('N', 'N', 'g8'), ('R', 'N', 'h8')
+    ('R', 'W', 'a1'), ('N', 'W', 'b1'), ('B', 'W', 'c1'), ('K', 'W', 'd1'),
+    ('Q', 'W', 'e1'), ('B', 'W', 'f1'), ('N', 'W', 'g1'), ('R', 'W', 'h1'),
+    ('P', 'W', 'a2'), ('P', 'W', 'b2'), ('P', 'W', 'c2'), ('P', 'W', 'd2'),
+    ('P', 'W', 'e2'), ('P', 'W', 'f2'), ('P', 'W', 'g2'), ('P', 'W', 'h2'),
+    ('P', 'B', 'a7'), ('P', 'B', 'b7'), ('P', 'B', 'c7'), ('P', 'B', 'd7'),
+    ('P', 'B', 'e7'), ('P', 'B', 'f7'), ('P', 'B', 'g7'), ('P', 'B', 'h7'),
+    ('R', 'B', 'a8'), ('N', 'B', 'b8'), ('B', 'B', 'c8'), ('K', 'B', 'd8'),
+    ('Q', 'B', 'e8'), ('B', 'B', 'f8'), ('N', 'B', 'g8'), ('R', 'B', 'h8')
 ]
 
+COLOR_LABEL = {
+    'W': "Blanc",
+    'B': "Noir",
+}
 
 @app.get("/", response_class=HTMLResponse)
 async def get_chessboard():
@@ -40,6 +44,7 @@ async def get_chessboard():
                 <form action="/update" method="post">
                     <input type="text" name="mouvement_requested" placeholder="Mouvement" value="a2-a3">
                     <input type="hidden" name="chess_positions" value="{chess_positions}"/>
+                    <input type="hidden" name="next_player" value="W"/>
                     <button type="submit">Update Board</button>
                 </form>
             </body>
@@ -48,17 +53,20 @@ async def get_chessboard():
 
 
 @app.post("/update", response_class=HTMLResponse)
-async def update_chessboard(mouvement_requested: str = Form(...), chess_positions: str = Form(...)):
+async def update_chessboard(mouvement_requested: str = Form(...), chess_positions: str = Form(...), next_player: str = Form(...)):
     pieces_list = parse_pieces_input(chess_positions)
-    pieces_list, has_error = do_mouvement(pieces_list, mouvement_requested)
+    pieces_list, error_msg = do_mouvement(pieces_list, mouvement_requested, next_player)
     chess_positions = to_pieces_input(pieces_list)
     draw_chessboard_with_labels(pieces_list)
     with open("chessboard_with_labels.svg", "r") as file:
         svg_content = file.read()
-    if has_error:
-        message = "There's no piece at the starting point !"
-    else:
-        message = ""
+
+    if error_msg == "":
+        if next_player == 'W':
+            next_player = 'B'
+        else:
+            next_player = 'W'
+
     return f"""
     <html>
         <body>
@@ -66,35 +74,45 @@ async def update_chessboard(mouvement_requested: str = Form(...), chess_position
             <form action="/update" method="post">
                 <input type="text" name="mouvement_requested" placeholder="Mouvement">
                 <input type="hidden" name="chess_positions" value="{chess_positions}"/>
+                <input type="hidden" name="next_player" value="{next_player}"/>
                 <button type="submit">Update Board</button>
             </form>
-            <div style='color: red'>{message}</div>
+            <div style='color: red'>{error_msg}</div>
+            <div style='color: purple'>Trait aux {COLOR_LABEL[next_player]}s</div>
         </body>
     </html>
     """
 
-def do_mouvement(pieces_list, mouvement_requested):
+
+def do_mouvement(pieces_list, mouvement_requested, current_player):
     new_piece_list = []
 
-    postions = mouvement_requested.split('-')
-    initial_position = postions[0]
-    target_position = postions[1]
+    positions = mouvement_requested.split('-')
+    initial_position = positions[0]
+    target_position = positions[1]
 
     if ord(target_position[0]) < ord("a") or ord(target_position[0]) > ord("h"):
-        return pieces_list, True
+        return pieces_list, f"La position de destination est hors du plateau: {target_position}"
 
     if int(target_position[1:]) < 1 or int(target_position[1:]) > 8:
-        return pieces_list, True
+        return pieces_list, f"La position de destination est hors du plateau: {target_position}"
 
     is_piece_found = False
 
     for piece, color, position in pieces_list:
         if position == initial_position:
+            if color != current_player:
+                return pieces_list, f"C'est au joueur {COLOR_LABEL[current_player]}({current_player}) de jouer: {piece}/{color}/{position}"
             new_piece_list.append((piece, color, target_position))
             is_piece_found = True
+
         else:
             new_piece_list.append((piece, color,position ))
-    return new_piece_list, not is_piece_found
+    if is_piece_found:
+        error_msg = ""
+    else:
+        error_msg = f"La pièce {initial_position} n'a pas été trouvée"
+    return new_piece_list, error_msg
 
 
 def parse_pieces_input(pieces_str):
