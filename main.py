@@ -29,6 +29,7 @@ initial_positions = [
 @app.get("/", response_class=HTMLResponse)
 async def get_chessboard():
     draw_chessboard_with_labels(initial_positions)
+    chess_positions = to_pieces_input(initial_positions)
 
     with open("chessboard_with_labels.svg", "r") as file:
         svg_content = file.read()
@@ -37,7 +38,8 @@ async def get_chessboard():
             <body>
                 {svg_content}
                 <form action="/update" method="post">
-                    <input type="text" name="pieces" placeholder="Piece positions" value="R,B,c1;N,B,b2">
+                    <input type="text" name="mouvement_requested" placeholder="Mouvement" value="a2-a3">
+                    <input type="hidden" name="chess_positions" value="{chess_positions}"/>
                     <button type="submit">Update Board</button>
                 </form>
             </body>
@@ -45,9 +47,12 @@ async def get_chessboard():
         """
 
 
+
 @app.post("/update", response_class=HTMLResponse)
-async def update_chessboard(pieces: str = Form(...)):
-    pieces_list = parse_pieces_input(pieces)
+async def update_chessboard(mouvement_requested: str = Form(...), chess_positions: str = Form(...)):
+    pieces_list = parse_pieces_input(chess_positions)
+    pieces_list = do_mouvement(pieces_list, mouvement_requested)
+    chess_positions = to_pieces_input(pieces_list)
     draw_chessboard_with_labels(pieces_list)
     with open("chessboard_with_labels.svg", "r") as file:
         svg_content = file.read()
@@ -56,12 +61,27 @@ async def update_chessboard(pieces: str = Form(...)):
         <body>
             {svg_content}
             <form action="/update" method="post">
-                <input type="text" name="pieces" placeholder="Piece positions">
+                <input type="text" name="mouvement_requested" placeholder="Mouvement">
+                <input type="hidden" name="chess_positions" value="{chess_positions}"/>
                 <button type="submit">Update Board</button>
             </form>
         </body>
     </html>
     """
+
+def do_mouvement(pieces_list, mouvement_requested):
+    new_piece_list = []
+
+    postions = mouvement_requested.split('-')
+    initial_position = postions[0]
+    target_position = postions[1]
+
+    for piece, color, position in pieces_list:
+        if position == initial_position:
+            new_piece_list.append((piece, color, target_position))
+        else:
+            new_piece_list.append((piece, color, position))
+    return new_piece_list
 
 
 def parse_pieces_input(pieces_str):
@@ -71,3 +91,9 @@ def parse_pieces_input(pieces_str):
         if len(piece_info) == 3:
             pieces_list.append((piece_info[0], piece_info[1], piece_info[2]))
     return pieces_list
+
+def to_pieces_input(pieces_data):
+    pieces_str = ""
+    for piece in pieces_data:
+        pieces_str += f"{piece[0]},{piece[1]},{piece[2]};"
+    return pieces_str
