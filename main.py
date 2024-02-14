@@ -1,7 +1,10 @@
+import uvicorn
 from fastapi import FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel, Field
 
+from data import get_chessboard_initialized, Color, Movement, Position, Chessboard, PieceInfo, PieceType
 from drawer import draw_chessboard_with_labels
 
 app = FastAPI()
@@ -14,38 +17,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-initial_positions = [
-    ('R', 'W', 'a1'), ('N', 'W', 'b1'), ('B', 'W', 'c1'), ('K', 'W', 'd1'),
-    ('Q', 'W', 'e1'), ('B', 'W', 'f1'), ('N', 'W', 'g1'), ('R', 'W', 'h1'),
-    ('P', 'W', 'a2'), ('P', 'W', 'b2'), ('P', 'W', 'c2'), ('P', 'W', 'd2'),
-    ('P', 'W', 'e2'), ('P', 'W', 'f2'), ('P', 'W', 'g2'), ('P', 'W', 'h2'),
-    ('P', 'B', 'a7'), ('P', 'B', 'b7'), ('P', 'B', 'c7'), ('P', 'B', 'd7'),
-    ('P', 'B', 'e7'), ('P', 'B', 'f7'), ('P', 'B', 'g7'), ('P', 'B', 'h7'),
-    ('R', 'B', 'a8'), ('N', 'B', 'b8'), ('B', 'B', 'c8'), ('K', 'B', 'd8'),
-    ('Q', 'B', 'e8'), ('B', 'B', 'f8'), ('N', 'B', 'g8'), ('R', 'B', 'h8')
-]
-
-COLOR_LABEL = {
-    'W': "Blanc",
-    'B': "Noir",
-}
-
 
 @app.get("/", response_class=HTMLResponse)
 async def get_chessboard():
-    draw_chessboard_with_labels(initial_positions)
-    chess_positions = to_pieces_input(initial_positions)
+    chessboard = get_chessboard_initialized()
+    draw_chessboard_with_labels(chessboard)
 
     with open("chessboard_with_labels.svg", "r") as file:
         svg_content = file.read()
+    mv_suggested = Movement.from_strs('a2', 'a3')
     return f"""
         <html>
             <body>
                 {svg_content}
                 <form action="/update" method="post">
-                    <input type="text" name="mouvement_requested" placeholder="Mouvement" value="a2-a3">
-                    <input type="hidden" name="chess_positions" value="{chess_positions}"/>
-                    <input type="hidden" name="next_player" value="W"/>
+                    <input type="text" name="movement" placeholder="Mouvement" value="{mv_suggested.to_string()}">
+                    <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
+                    <input type="hidden" name="next_player" value="{Color.WHITE.value}"/>
                     <button type="submit">Update Board</button>
                 </form>
             </body>
@@ -53,23 +41,28 @@ async def get_chessboard():
         """
 
 
+
 @app.post("/update", response_class=HTMLResponse)
 async def update_chessboard(
-        mouvement_requested: str = Form(...),
-        chess_positions: str = Form(...),
-        next_player: str = Form(...)):
-    pieces_list = parse_pieces_input(chess_positions)
-    pieces_list, error_msg = do_movement(pieces_list, mouvement_requested, next_player)
-    chess_positions = to_pieces_input(pieces_list)
-    draw_chessboard_with_labels(pieces_list)
+        chessboard_str: str = Form(..., alias='chessboard'),
+        movement_str: str = Form(..., alias='movement'),
+        next_player_str: str = Form(..., alias='next_player')):
+    chessboard = Chessboard.from_str(chessboard_str)
+    movement = Movement.from_str(movement_str)
+    next_player = Color.from_str(next_player_str)
+
+    print(f"aaaaaaaaaaaaaaaaaaaa {chessboard.to_string()}")
+
+    chessboard, error_msg = do_movement(chessboard, movement, next_player)
+    draw_chessboard_with_labels(chessboard)
     with open("chessboard_with_labels.svg", "r") as file:
         svg_content = file.read()
 
     if error_msg == "":
-        if next_player == 'W':
-            next_player = 'B'
+        if next_player == Color.WHITE:
+            next_player = Color.BLACK
         else:
-            next_player = 'W'
+            next_player = Color.WHITE
 
     return f"""
     <html>
@@ -77,54 +70,50 @@ async def update_chessboard(
             {svg_content}
             <form action="/update" method="post">
                 <input type="text" name="mouvement_requested" placeholder="Mouvement">
-                <input type="hidden" name="chess_positions" value="{chess_positions}"/>
-                <input type="hidden" name="next_player" value="{next_player}"/>
+                <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
+                <input type="hidden" name="next_player" value="{next_player.value}"/>
                 <button type="submit">Update Board</button>
             </form>
             <div style='color: red'>{error_msg}</div>
-            <div style='color: purple'>Trait aux {COLOR_LABEL[next_player]}s</div>
+            <div style='color: purple'>Trait aux {next_player.toLabel()}s</div>
         </body>
     </html>
     """
 
 
-def do_movement(pieces_list, movement_requested, current_player):
+def do_movement(chessboard, movement, player):
     new_piece_list = []
 
-    positions = movement_requested.split('-')
-    initial_position = positions[0]
-    target_position = positions[1]
+    if movement.target.col < 0 or movement.target.col > 7 or movement.target.row < 0 or movement.target.row > 7:
+        return chessboard, f"La position de destination est hors du plateau: {movement.target.to_string()}"
 
-    if ord(target_position[0]) < ord("a") or ord(target_position[0]) > ord("h"):
-        return pieces_list, f"La position de destination est hors du plateau: {target_position}"
+    piece = chessboard.pieces_list[movement.init]
 
-    if int(target_position[1:]) < 1 or int(target_position[1:]) > 8:
-        return pieces_list, f"La position de destination est hors du plateau: {target_position}"
+    if piece is None:
+        return new_piece_list, f"La pièce {movement.init.to_string()} n'a pas été trouvée"
 
-    is_piece_found = False
+    if piece.color != player:
+        return chessboard, f"C'est au joueur {player.toLabel()} de jouer"
+    if not is_movement_authorized(piece, movement):
+        return chessboard, f"Ce coup n'est pas autorisé: {movement.target.to_string()}"
 
-    for piece, color, position in pieces_list:
-        if position == initial_position:
-            if color != current_player:
-                return pieces_list, f"C'est au joueur {COLOR_LABEL[current_player]}({current_player}) de jouer: {piece}/{color}/{position}"
-            if piece == "P":
-                if color == "B":
-                    authorized_move = f"{position[0]}{int(position[1:]) - 1}"
-                else:
-                    authorized_move = f"{position[0]}{int(position[1:]) + 1}"
+    del chessboard.pieces_list[piece.position]
+    piece.position = movement.target
+    chessboard.pieces_list[movement.target] = piece
 
-                if target_position != authorized_move:
-                    return pieces_list, f"Ce coup n'est pas autorisé ({authorized_move}): {target_position}"
+    return chessboard, ""
 
-            new_piece_list.append((piece, color, target_position))
-            is_piece_found = True
-        else:
-            new_piece_list.append((piece, color, position))
-    if is_piece_found:
-        error_msg = ""
-    else:
-        error_msg = f"La pièce {initial_position} n'a pas été trouvée"
-    return new_piece_list, error_msg
+
+def is_movement_authorized(piece: PieceInfo, movement: Movement):
+
+    if piece.type == PieceType.PAWN:
+        is_initial_position = (
+                (piece.color == Color.WHITE and movement.init.row == 1) or
+                (piece.color == Color.BLACK and movement.init.row == 6)
+        )
+        # TODO
+
+    return True
 
 
 def parse_pieces_input(pieces_str):
@@ -141,3 +130,7 @@ def to_pieces_input(pieces_data):
     for piece in pieces_data:
         pieces_str += f"{piece[0]},{piece[1]},{piece[2]};"
     return pieces_str
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
