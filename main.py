@@ -105,9 +105,8 @@ def do_mouvement(pieces_list, mouvement_requested, current_player):
                 return pieces_list, f"C'est au joueur {COLOR_LABEL[current_player]}({current_player}) de jouer: {piece}/{color}/{position}"
             new_piece_list.append((piece, color, target_position))
             is_piece_found = True
-
         else:
-            new_piece_list.append((piece, color,position ))
+            new_piece_list.append((piece, color, position))
     if is_piece_found:
         error_msg = ""
     else:
