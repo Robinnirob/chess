@@ -103,6 +103,15 @@ def do_mouvement(pieces_list, mouvement_requested, current_player):
         if position == initial_position:
             if color != current_player:
                 return pieces_list, f"C'est au joueur {COLOR_LABEL[current_player]}({current_player}) de jouer: {piece}/{color}/{position}"
+            if piece == "P":
+                if color == "B":
+                    authorized_move = f"{position[0]}{int(position[1:]) - 1}"
+                else:
+                    authorized_move = f"{position[0]}{int(position[1:]) + 1}"
+
+                if target_position != authorized_move:
+                        return pieces_list, f"Ce coup n'est pas autorisé ({authorized_move}): {target_position}"
+
             new_piece_list.append((piece, color, target_position))
             is_piece_found = True
         else:
