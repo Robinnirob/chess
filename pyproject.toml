@@ -9,6 +9,8 @@ readme = "README.md"
 python = "^3.11"
 fastapi = "^0.109.2"
 svgwrite = "^1.4.3"
+uvicorn = "^0.27.1"
+python-multipart = "^0.0.9"
 
 
 [build-system]
