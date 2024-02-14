@@ -30,6 +30,7 @@ COLOR_LABEL = {
     'B': "Noir",
 }
 
+
 @app.get("/", response_class=HTMLResponse)
 async def get_chessboard():
     draw_chessboard_with_labels(initial_positions)
@@ -53,9 +54,12 @@ async def get_chessboard():
 
 
 @app.post("/update", response_class=HTMLResponse)
-async def update_chessboard(mouvement_requested: str = Form(...), chess_positions: str = Form(...), next_player: str = Form(...)):
+async def update_chessboard(
+        mouvement_requested: str = Form(...),
+        chess_positions: str = Form(...),
+        next_player: str = Form(...)):
     pieces_list = parse_pieces_input(chess_positions)
-    pieces_list, error_msg = do_mouvement(pieces_list, mouvement_requested, next_player)
+    pieces_list, error_msg = do_movement(pieces_list, mouvement_requested, next_player)
     chess_positions = to_pieces_input(pieces_list)
     draw_chessboard_with_labels(pieces_list)
     with open("chessboard_with_labels.svg", "r") as file:
@@ -84,10 +88,10 @@ async def update_chessboard(mouvement_requested: str = Form(...), chess_position
     """
 
 
-def do_mouvement(pieces_list, mouvement_requested, current_player):
+def do_movement(pieces_list, movement_requested, current_player):
     new_piece_list = []
 
-    positions = mouvement_requested.split('-')
+    positions = movement_requested.split('-')
     initial_position = positions[0]
     target_position = positions[1]
 
@@ -110,7 +114,7 @@ def do_mouvement(pieces_list, mouvement_requested, current_player):
                     authorized_move = f"{position[0]}{int(position[1:]) + 1}"
 
                 if target_position != authorized_move:
-                        return pieces_list, f"Ce coup n'est pas autorisé ({authorized_move}): {target_position}"
+                    return pieces_list, f"Ce coup n'est pas autorisé ({authorized_move}): {target_position}"
 
             new_piece_list.append((piece, color, target_position))
             is_piece_found = True
@@ -130,6 +134,7 @@ def parse_pieces_input(pieces_str):
         if len(piece_info) == 3:
             pieces_list.append((piece_info[0], piece_info[1], piece_info[2]))
     return pieces_list
+
 
 def to_pieces_input(pieces_data):
     pieces_str = ""
