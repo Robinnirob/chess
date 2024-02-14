@@ -14,12 +14,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+initial_positions = [
+    ('R', 'B', 'a1'), ('N', 'B', 'b1'), ('B', 'B', 'c1'), ('Q', 'B', 'd1'),
+    ('K', 'B', 'e1'), ('B', 'B', 'f1'), ('N', 'B', 'g1'), ('R', 'B', 'h1'),
+    ('P', 'B', 'a2'), ('P', 'B', 'b2'), ('P', 'B', 'c2'), ('P', 'B', 'd2'),
+    ('P', 'B', 'e2'), ('P', 'B', 'f2'), ('P', 'B', 'g2'), ('P', 'B', 'h2'),
+    ('P', 'N', 'a7'), ('P', 'N', 'b7'), ('P', 'N', 'c7'), ('P', 'N', 'd7'),
+    ('P', 'N', 'e7'), ('P', 'N', 'f7'), ('P', 'N', 'g7'), ('P', 'N', 'h7'),
+    ('R', 'N', 'a8'), ('N', 'N', 'b8'), ('B', 'N', 'c8'), ('Q', 'N', 'd8'),
+    ('K', 'N', 'e8'), ('B', 'N', 'f8'), ('N', 'N', 'g8'), ('R', 'N', 'h8')
+]
+
 
 @app.get("/", response_class=HTMLResponse)
 async def get_chessboard():
-    pieces = [('R', 'B', 'a1'), ('N', 'B', 'b1')]
-    draw_chessboard_with_labels(pieces)
-
+    draw_chessboard_with_labels(initial_positions)
 
     with open("chessboard_with_labels.svg", "r") as file:
         svg_content = file.read()
