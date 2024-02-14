@@ -9,15 +9,14 @@ def draw_chessboard_with_labels(pieces, filename='chessboard_with_labels.svg'):
     for row in range(board_size):
         for col in range(board_size):
             if (row + col) % 2 == 0:
-                fill = '#1f7'
+                fill = '#7A511D'
             else:
-                fill = '#701'
+                fill = 'darkgray'
             dwg.add(dwg.rect(insert=(col * square_size, row * square_size), size=(square_size, square_size), fill=fill))
 
     piece_labels = {'R': 'R', 'N': 'N', 'B': 'B', 'Q': 'Q', 'K': 'K', 'P': 'P'}
 
     for piece, color, position in pieces:
-        print(f"piece, color, position: {piece}, {color}, {position}")
         col = ord(position[0]) - ord('a')
         row = 8 - int(position[1])
         if color == 'B':

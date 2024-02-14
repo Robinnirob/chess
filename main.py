@@ -50,11 +50,15 @@ async def get_chessboard():
 @app.post("/update", response_class=HTMLResponse)
 async def update_chessboard(mouvement_requested: str = Form(...), chess_positions: str = Form(...)):
     pieces_list = parse_pieces_input(chess_positions)
-    pieces_list = do_mouvement(pieces_list, mouvement_requested)
+    pieces_list, has_error = do_mouvement(pieces_list, mouvement_requested)
     chess_positions = to_pieces_input(pieces_list)
     draw_chessboard_with_labels(pieces_list)
     with open("chessboard_with_labels.svg", "r") as file:
         svg_content = file.read()
+    if has_error:
+        message = "There's no piece at the starting point !"
+    else:
+        message = ""
     return f"""
     <html>
         <body>
@@ -64,6 +68,7 @@ async def update_chessboard(mouvement_requested: str = Form(...), chess_position
                 <input type="hidden" name="chess_positions" value="{chess_positions}"/>
                 <button type="submit">Update Board</button>
             </form>
+            <div style='color: red'>{message}</div>
         </body>
     </html>
     """
@@ -76,17 +81,20 @@ def do_mouvement(pieces_list, mouvement_requested):
     target_position = postions[1]
 
     if ord(target_position[0]) < ord("a") or ord(target_position[0]) > ord("h"):
-        return pieces_list
+        return pieces_list, True
 
     if int(target_position[1:]) < 1 or int(target_position[1:]) > 8:
-        return pieces_list
+        return pieces_list, True
+
+    is_piece_found = False
 
     for piece, color, position in pieces_list:
         if position == initial_position:
             new_piece_list.append((piece, color, target_position))
+            is_piece_found = True
         else:
-            new_piece_list.append((piece, color, position))
-    return new_piece_list
+            new_piece_list.append((piece, color,position ))
+    return new_piece_list, not is_piece_found
 
 
 def parse_pieces_input(pieces_str):
