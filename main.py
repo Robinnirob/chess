@@ -41,8 +41,14 @@ suggestion_js_script = """
                 form.submit()
             }
             
-            let squares = document.getElementsByClassName('chess-square')
-            addOnlickOnItems(squares)
+            let elements = document.getElementsByClassName('chess-square')
+            addOnlickOnItems(elements)
+            elements = document.getElementsByClassName('chess-suggestion')
+            addOnlickOnItems(elements)
+            elements = document.getElementsByClassName('chess-piece')
+            addOnlickOnItems(elements)
+            elements = document.getElementsByClassName('chess-piece-text')
+            addOnlickOnItems(elements)
         </script>
 """
 
