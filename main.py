@@ -2,9 +2,8 @@ import uvicorn
 from fastapi import FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel, Field
 
-from data import get_chessboard_initialized, Color, Movement, Position, Chessboard, PieceInfo, PieceType
+from data import get_chessboard_initialized, Color, Movement, Chessboard, PieceInfo, PieceType
 from drawer import draw_chessboard_with_labels
 
 app = FastAPI()
@@ -50,7 +49,7 @@ async def update_chessboard(
     movement = Movement.from_str(movement_str)
     next_player = Color.from_str(next_player_str)
 
-    chessboard, error_msg = do_movement(chessboard, movement, next_player)
+    chessboard, error_msg = do_movement(chessboard=chessboard, movement=movement, player=next_player)
     draw_chessboard_with_labels(chessboard)
     with open("chessboard_with_labels.svg", "r") as file:
         svg_content = file.read()
@@ -66,7 +65,7 @@ async def update_chessboard(
         <body>
             {svg_content}
             <form action="/update" method="post">
-                <input type="text" name="mouvement_requested" placeholder="Mouvement">
+                <input type="text" name="movement" placeholder="Mouvement">
                 <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
                 <input type="hidden" name="next_player" value="{next_player.value}"/>
                 <button type="submit">Update Board</button>
@@ -82,17 +81,22 @@ def do_movement(chessboard, movement, player):
     new_piece_list = []
 
     if movement.target.col < 0 or movement.target.col > 7 or movement.target.row < 0 or movement.target.row > 7:
+        print("Out of board")
         return chessboard, f"La position de destination est hors du plateau: {movement.target.to_string()}"
 
-    piece = chessboard.pieces_list[movement.init]
+    piece = chessboard.getPiece(movement.init)
 
     if piece is None:
-        return new_piece_list, f"La pièce {movement.init.to_string()} n'a pas été trouvée"
+        print("No piece found")
+        return chessboard, f"La pièce {movement.init.to_string()} n'a pas été trouvée"
 
     if piece.color != player:
+        print("Bad user has played")
         return chessboard, f"C'est au joueur {player.toLabel()} de jouer"
-    if not is_movement_authorized(piece, movement):
+    if not is_movement_authorized(piece, movement, chessboard):
+        print("Unauthorized move")
         return chessboard, f"Ce coup n'est pas autorisé: {movement.target.to_string()}"
+
 
     del chessboard.pieces_list[piece.position]
     piece.position = movement.target
