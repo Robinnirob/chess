@@ -32,10 +32,30 @@ suggestion_js_script = """
                 } 
             }
         }
+        
+        function add_move_behavior(items, init) {
+            for (var i = 0; i < items.length; i++) {
+                classes = items[i].classList
+                for (var j = 0; j < classes.length; j++) {
+                    var cls = classes[j]
+                    if (cls.startsWith('pos-')) {
+                       let pos = cls.substr('pos-'.length)
+                       items[i].onclick = () => gotoMove(init, pos)
+                    }
+                } 
+            }
+        }
         function gotoSuggestion(pos) {
             form = document.getElementById("chess-suggestion-form")
             input = document.getElementById("chess-suggestion-input")
             input.value = pos
+            form.submit()
+        }
+        
+        function gotoMove(init, target) {
+            form = document.getElementById("chess-move-form")
+            input = document.getElementById("chess-move-input")
+            input.value = init + '-' + target
             form.submit()
         }
 
@@ -45,8 +65,13 @@ suggestion_js_script = """
         add_suggestion_behavior(elements)
         elements = document.getElementsByClassName('chess-piece-text')
         add_suggestion_behavior(elements)
-        elements = document.getElementsByClassName('chess-suggestion')
-        addOnlickOnItems(elements)
+        
+        let currentSuggestionItem = document.getElementById("chess-current-suggestion")
+        if (currentSuggestionItem !== undefined && currentSuggestionItem.value !== undefined) {
+            elements = document.getElementsByClassName('chess-suggestion')
+            add_move_behavior(elements, currentSuggestionItem.value)
+        }
+        
     </script>
 """
 
@@ -64,8 +89,9 @@ def form_suggestion(chessboard, color=Color.WHITE.value):
 
 def form_move(chessboard, next_player, pos):
     return f"""
-    <form action="/update" method="post">
-        <input type="text" name="movement" placeholder="Mouvement" value="{pos}" autofocus>
+    <input id="chess-current-suggestion" type="hidden" value="{pos}"/>
+    <form id='chess-move-form' action="/update" method="post">
+        <input id='chess-move-input' type="text" name="movement" placeholder="Mouvement" value="{pos}" autofocus>
         <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
         <input type="hidden" name="next_player" value="{next_player}"/>
         <button type="submit">Update Board</button>
