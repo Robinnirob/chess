@@ -243,6 +243,10 @@ def extract_authorized_squares(chessboard: Chessboard, piece: PieceInfo) -> List
         authorized_squares = [piece.position.offset(0, direction_value)]
         if is_initial_position:
             authorized_squares.append(piece.position.offset(0, direction_value * 2))
+        if chessboard.getPiece(piece.position.offset(0, direction_value * 2)):
+                authorized_squares = [piece.position.offset(0, direction_value)]
+        elif chessboard.getPiece(piece.position.offset(0, direction_value)):
+                authorized_squares = []
 
         left_diag_piece = chessboard.getPiece(piece.position.offset(-1, direction_value))
         right_diag_piece = chessboard.getPiece(piece.position.offset(1, direction_value))

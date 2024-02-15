@@ -38,8 +38,17 @@ class MovementTest(unittest.TestCase):
 
     def test_should_authorize_white_pawn_to_eat_right_diag_if_enemy_piece_present(self):
         move, piece, chessboard = self.init(init_pos='a3', target_pos='b4', enemy_positions=['b4'])
+
+    def test_should_unauthorize_white_pawn_to_advance_if_enemy_is_over(self):
+        move, piece, chessboard = self.init(init_pos='a3', target_pos='a4', enemy_positions=['a4'])
         actual = is_movement_authorized(piece, move, chessboard)
         self.assertFalse(actual)
+
+    def test_should_authorize_white_pawn_to_advance_if_enemy_is_2_square_over(self):
+        move, piece, chessboard = self.init(init_pos='g4', target_pos='g5', enemy_positions=['g6'])
+        actual = is_movement_authorized(piece, move, chessboard)
+        self.assertTrue(actual)
+
 
     def init(self, type='P', color='W', init_pos='a3', target_pos='a3', enemy_positions: List[str] = []):
         piece = PieceInfo.from_str(type, color, init_pos)
