@@ -19,49 +19,58 @@ app.add_middleware(
 )
 
 suggestion_js_script = """
-        <script>
-            
-            function addOnlickOnItems(items) {
-                for (var i = 0; i < items.length; i++) {
-                    classes = items[i].classList
-                    for (var j = 0; j < classes.length; j++) {
-                        var cls = classes[j]
-                        if (cls.startsWith('pos-')) {
-                           let pos = cls.substr('pos-'.length)
-                           items[i].onclick = () => gotoSuggestion(pos)
-                        }
-                    } 
-                }
+    <script>
+        function add_suggestion_behavior(items) {
+            for (var i = 0; i < items.length; i++) {
+                classes = items[i].classList
+                for (var j = 0; j < classes.length; j++) {
+                    var cls = classes[j]
+                    if (cls.startsWith('pos-')) {
+                       let pos = cls.substr('pos-'.length)
+                       items[i].onclick = () => gotoSuggestion(pos)
+                    }
+                } 
             }
-            
-            function gotoSuggestion(pos) {
-                form = document.getElementById("chess-suggestion-form")
-                input = document.getElementById("chess-suggestion-input")
-                input.value = pos
-                form.submit()
-            }
-            
-            let elements = document.getElementsByClassName('chess-square')
-            addOnlickOnItems(elements)
-            elements = document.getElementsByClassName('chess-suggestion')
-            addOnlickOnItems(elements)
-            elements = document.getElementsByClassName('chess-piece')
-            addOnlickOnItems(elements)
-            elements = document.getElementsByClassName('chess-piece-text')
-            addOnlickOnItems(elements)
-        </script>
+        }
+        function gotoSuggestion(pos) {
+            form = document.getElementById("chess-suggestion-form")
+            input = document.getElementById("chess-suggestion-input")
+            input.value = pos
+            form.submit()
+        }
+
+        let elements = document.getElementsByClassName('chess-square')
+        add_suggestion_behavior(elements)
+        elements = document.getElementsByClassName('chess-piece')
+        add_suggestion_behavior(elements)
+        elements = document.getElementsByClassName('chess-piece-text')
+        add_suggestion_behavior(elements)
+        elements = document.getElementsByClassName('chess-suggestion')
+        addOnlickOnItems(elements)
+    </script>
 """
 
 
 def form_suggestion(chessboard, color=Color.WHITE.value):
     return f"""
-                <form id='chess-suggestion-form' action="/suggestion" method="post">
-                    <input id='chess-suggestion-input' type="text" name="position" placeholder="Position">
-                    <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
-                    <input type="hidden" name="next_player" value="{color}"/>
-                    <button type="submit">Suggestion</button>
-                </form>
+    <form id='chess-suggestion-form' action="/suggestion" method="post">
+        <input id='chess-suggestion-input' type="text" name="position" placeholder="Position">
+        <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
+        <input type="hidden" name="next_player" value="{color}"/>
+        <button type="submit">Suggestion</button>
+    </form>
 """
+
+
+def form_move(chessboard, next_player, pos):
+    return f"""
+    <form action="/update" method="post">
+        <input type="text" name="movement" placeholder="Mouvement" value="{pos}" autofocus>
+        <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
+        <input type="hidden" name="next_player" value="{next_player}"/>
+        <button type="submit">Update Board</button>
+    </form> 
+    """
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -76,12 +85,7 @@ async def get_chessboard():
         <html>
             <body>
                 {svg_content}
-                <form action="/update" method="post">
-                    <input type="text" name="movement" placeholder="Mouvement" value="{mv_suggested.to_string()}" autofocus>
-                    <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
-                    <input type="hidden" name="next_player" value="{Color.WHITE.value}"/>
-                    <button type="submit">Update Board</button>
-                </form>
+                {form_move(chessboard, Color.WHITE.value, mv_suggested.to_string())}
                 {form_suggestion(chessboard)}
             </body>
         {suggestion_js_script}
@@ -113,12 +117,7 @@ async def update_chessboard(
     <html>
         <body>
             {svg_content}
-            <form action="/update" method="post">
-                <input type="text" name="movement" placeholder="Mouvement" autofocus>
-                <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
-                <input type="hidden" name="next_player" value="{next_player.value}"/>
-                <button type="submit">Update Board</button>
-            </form>
+            {form_move(chessboard, next_player.value, "")}
             {form_suggestion(chessboard, next_player.value)}
             <div style='color: red'>{error_msg}</div>
             <button onclick='window.location = "/";'>Nouvelle partie</button>
@@ -142,7 +141,7 @@ async def update_chessboard(
     if piece_expected_to_move is not None:
         print(f'piece_expected_to_move {piece_expected_to_move}')
         error_msg = ""
-        suggestion_pos = position_str if next_player == piece_expected_to_move.color else ""
+        suggestion_pos = "" if next_player != piece_expected_to_move.color else position_str
         moves = extract_authorized_squares(chessboard=chessboard, piece=piece_expected_to_move)
     else:
         error_msg = "Pas de pièce à cette position"
@@ -158,18 +157,14 @@ async def update_chessboard(
     <html>
         <body>
             {svg_content}
-            <form action="/update" method="post">
-                <input type="text" name="movement" placeholder="Mouvement" value="{suggestion_pos}" autofocus>
-                <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
-                <input type="hidden" name="next_player" value="{next_player.value}"/>
-                <button type="submit">Update Board</button>
-            </form>
+            {form_move(chessboard, next_player.value, suggestion_pos)}
             {form_suggestion(chessboard, next_player.value)}
             <div>{[f'{position_str}-{move.to_string()}' for move in moves]}</div>
             <div style='color: red'>{error_msg}</div>
             <button onclick='window.location = "/";'>Nouvelle partie</button>
             <div style='color: purple'>Trait aux {next_player.toLabel()}s</div>
         </body>
+        {suggestion_js_script}
         {suggestion_js_script}
     </html>
     """
