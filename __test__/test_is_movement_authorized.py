@@ -51,6 +51,11 @@ class MovementTest(unittest.TestCase):
         actual = is_movement_authorized(piece, move, chessboard)
         self.assertTrue(actual)
 
+    def test_should_authorize_white_pawn_to_capture_en_passant(self):
+        move, piece, chessboard = self.init(init_pos='g4', target_pos='g5', enemy_positions=['g6'])
+        actual = is_movement_authorized(piece, move, chessboard)
+        self.assertTrue(actual)
+
 
     def init(self, type='P', color='W', init_pos='a3', target_pos='a3', enemy_positions: List[str] = []):
         piece = PieceInfo.from_str(type, color, init_pos)
