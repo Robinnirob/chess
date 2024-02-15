@@ -109,6 +109,7 @@ async def get_chessboard():
     mv_suggested = Movement.from_strs('a2', 'a3')
     return f"""
         <html>
+            <head><title>Chess Board</title></head>
             <body>
                 {svg_content}
                 {form_move(chessboard, Color.WHITE.value, mv_suggested.to_string())}
@@ -141,6 +142,7 @@ async def update_chessboard(
 
     return f"""
     <html>
+        <head><title>Chess Board</title></head>
         <body>
             {svg_content}
             {form_move(chessboard, next_player.value, "")}
@@ -181,6 +183,7 @@ async def update_chessboard(
 
     return f"""
     <html>
+        <head><title>Chess Board</title></head>
         <body>
             {svg_content}
             {form_move(chessboard, next_player.value, suggestion_pos)}
