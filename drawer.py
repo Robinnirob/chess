@@ -34,7 +34,7 @@ def draw_chessboard_with_labels(chessboard: Chessboard, filename='chessboard_wit
 
     for piece in chessboard.pieces_list.values():
         col = piece.position.col
-        row = 8 - piece.position.row
+        row = 7 - piece.position.row
 
         piece_color = PIECE_COLORS[piece.color]
         text_color = TEXT_COLORS[piece.color]
