@@ -30,7 +30,7 @@ async def get_chessboard():
             <body>
                 {svg_content}
                 <form action="/update" method="post">
-                    <input type="text" name="movement" placeholder="Mouvement" value="{mv_suggested.to_string()}">
+                    <input type="text" name="movement" placeholder="Mouvement" value="{mv_suggested.to_string()}" autofocus>
                     <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
                     <input type="hidden" name="next_player" value="{Color.WHITE.value}"/>
                     <button type="submit">Update Board</button>
@@ -65,12 +65,13 @@ async def update_chessboard(
         <body>
             {svg_content}
             <form action="/update" method="post">
-                <input type="text" name="movement" placeholder="Mouvement">
+                <input type="text" name="movement" placeholder="Mouvement" autofocus>
                 <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
                 <input type="hidden" name="next_player" value="{next_player.value}"/>
                 <button type="submit">Update Board</button>
             </form>
             <div style='color: red'>{error_msg}</div>
+            <button onclick='window.location = "/";'>Nouvelle partie</button>
             <div style='color: purple'>Trait aux {next_player.toLabel()}s</div>
         </body>
     </html>
