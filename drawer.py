@@ -1,11 +1,15 @@
+from typing import List
+
 import svgwrite
 
-from data import Chessboard, Color
+from data import Chessboard, Color, Position
 
 SQUARE_COLORS = {
     Color.BLACK: 'darkgray',
     Color.WHITE: '#7A511D',
 }
+
+SUGGESTED_SQUARE = 'pink'
 
 PIECE_COLORS = {
     Color.BLACK: 'black',
@@ -17,20 +21,27 @@ TEXT_COLORS = {
     Color.WHITE: 'black'
 }
 
+board_size = 8
+square_size = 50
 
-def draw_chessboard_with_labels(chessboard: Chessboard, filename='chessboard_with_labels.svg'):
-    board_size = 8
-    square_size = 50
+
+def draw_chessboard_with_labels(chessboard: Chessboard, suggested_moves: List[Position] = [],
+                                filename='chessboard_with_labels.svg'):
     dwg = svgwrite.Drawing(filename, profile='tiny', size=(board_size * square_size, board_size * square_size))
 
     for row in range(board_size):
         for col in range(board_size):
-            is_black = (row + col) % 2 == 0
-            if is_black:
-                fill = SQUARE_COLORS[Color.BLACK]
-            else:
+            position = Position(col, row)
+            is_white = (position.row + position.col) % 2 == 0
+            if is_white:
                 fill = SQUARE_COLORS[Color.WHITE]
-            dwg.add(dwg.rect(insert=(col * square_size, row * square_size), size=(square_size, square_size), fill=fill))
+            else:
+                fill = SQUARE_COLORS[Color.BLACK]
+            draw_square(dwg, fill, position)
+
+    for move in suggested_moves:
+        print("---" + str(move))
+        draw_square(dwg, SUGGESTED_SQUARE, move)
 
     for piece in chessboard.pieces_list.values():
         col = piece.position.col
@@ -49,3 +60,11 @@ def draw_chessboard_with_labels(chessboard: Chessboard, filename='chessboard_wit
                          font_family='Arial', text_anchor="middle"))
 
     dwg.save()
+
+
+def draw_square(dwg, fill, position):
+    dwg.add(dwg.rect(
+        insert=(position.col * square_size, (7 - position.row)* square_size),
+        size=(square_size, square_size),
+        fill=fill)
+    )

@@ -1,9 +1,11 @@
+from typing import List
+
 import uvicorn
 from fastapi import FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
-from data import get_chessboard_initialized, Color, Movement, Chessboard, PieceInfo, PieceType
+from data import get_chessboard_initialized, Color, Movement, Chessboard, PieceInfo, PieceType, Position
 from drawer import draw_chessboard_with_labels
 
 app = FastAPI()
@@ -34,6 +36,12 @@ async def get_chessboard():
                     <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
                     <input type="hidden" name="next_player" value="{Color.WHITE.value}"/>
                     <button type="submit">Update Board</button>
+                </form>
+                <form action="/suggestion" method="post">
+                    <input type="text" name="position" placeholder="Position">
+                    <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
+                    <input type="hidden" name="next_player" value="{Color.WHITE.value}"/>
+                    <button type="submit">Suggestion</button>
                 </form>
             </body>
         </html>
@@ -70,6 +78,12 @@ async def update_chessboard(
                 <input type="hidden" name="next_player" value="{next_player.value}"/>
                 <button type="submit">Update Board</button>
             </form>
+            <form action="/suggestion" method="post">
+                <input type="text" name="position" placeholder="Position">
+                <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
+                <input type="hidden" name="next_player" value="{next_player.value}"/>
+                <button type="submit">Suggestion</button>
+            </form>
             <div style='color: red'>{error_msg}</div>
             <button onclick='window.location = "/";'>Nouvelle partie</button>
             <div style='color: purple'>Trait aux {next_player.toLabel()}s</div>
@@ -78,7 +92,55 @@ async def update_chessboard(
     """
 
 
-def do_movement(chessboard, movement, player):
+@app.post("/suggestion", response_class=HTMLResponse)
+async def update_chessboard(
+        chessboard_str: str = Form(..., alias='chessboard'),
+        position_str: str = Form(..., alias='position'),
+        next_player_str: str = Form(..., alias='next_player')):
+    chessboard = Chessboard.from_str(chessboard_str)
+    position = Position.from_str(position_str)
+    next_player = Color.from_str(next_player_str)
+
+    piece_expected_to_move = chessboard.getPiece(position)
+    if piece_expected_to_move is not None:
+        error_msg = ""
+        suggestion_pos = position_str if next_player == piece_expected_to_move.color else ""
+        moves = extract_authorized_squares(chessboard=chessboard, piece=piece_expected_to_move)
+    else:
+        error_msg = "Pas de pièce à cette position"
+        suggestion_pos = ""
+        moves = []
+
+    draw_chessboard_with_labels(chessboard, moves)
+    with open("chessboard_with_labels.svg", "r") as file:
+        svg_content = file.read()
+
+    return f"""
+    <html>
+        <body>
+            {svg_content}
+            <form action="/update" method="post">
+                <input type="text" name="movement" placeholder="Mouvement" value={suggestion_pos} autofocus>
+                <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
+                <input type="hidden" name="next_player" value="{next_player.value}"/>
+                <button type="submit">Update Board</button>
+            </form>
+            <form action="/suggestion" method="post">
+                <input type="text" name="position" placeholder="Position" value={position_str}>
+                <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
+                <input type="hidden" name="next_player" value="{next_player.value}"/>
+                <button type="submit">Suggestion</button>
+            </form>
+            <div>{[f'{position_str}-{move.to_string()}' for move in moves]}</div>
+            <div style='color: red'>{error_msg}</div>
+            <button onclick='window.location = "/";'>Nouvelle partie</button>
+            <div style='color: purple'>Trait aux {next_player.toLabel()}s</div>
+        </body>
+    </html>
+    """
+
+
+def do_movement(chessboard: Chessboard, movement: Movement, player: Color):
     new_piece_list = []
 
     if movement.target.col < 0 or movement.target.col > 7 or movement.target.row < 0 or movement.target.row > 7:
@@ -108,6 +170,13 @@ def do_movement(chessboard, movement, player):
 
 def is_movement_authorized(piece: PieceInfo, movement: Movement, chessboard: Chessboard) -> bool:
     if piece.type == PieceType.PAWN:
+        authorized_squares = extract_authorized_squares(chessboard=chessboard, piece=piece)
+        return movement.target in authorized_squares
+
+    return True
+
+def extract_authorized_squares(chessboard: Chessboard, piece: PieceInfo) -> List[Position]:
+    if piece.type == PieceType.PAWN:
         direction_value = 1 if piece.color == Color.WHITE else -1
         is_initial_position = (
                 (piece.color == Color.WHITE and piece.position.row == 1) or
@@ -118,15 +187,16 @@ def is_movement_authorized(piece: PieceInfo, movement: Movement, chessboard: Che
             authorized_squares.append(piece.position.offset(0, direction_value * 2))
 
         left_diag_piece = chessboard.getPiece(piece.position.offset(-1, direction_value))
-        right_diag_piece = chessboard.getPiece(piece.position.offset(-1, direction_value))
+        right_diag_piece = chessboard.getPiece(piece.position.offset(1, direction_value))
+        print(f"---left: {left_diag_piece}:{piece.position.offset(-1, direction_value)}")
+        print(f"---right: {right_diag_piece}:{piece.position.offset(1, direction_value)}")
         if left_diag_piece is not None and left_diag_piece.color != piece.color:
             authorized_squares.append(left_diag_piece.position)
         if right_diag_piece is not None and right_diag_piece.color != piece.color:
             authorized_squares.append(right_diag_piece.position)
+        return authorized_squares
+    return []
 
-        return movement.target in authorized_squares
-
-    return True
 
 
 def parse_pieces_input(pieces_str):
