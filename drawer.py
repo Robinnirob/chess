@@ -9,7 +9,7 @@ SQUARE_COLORS = {
     Color.WHITE: '#7A511D',
 }
 
-SUGGESTED_SQUARE = 'pink'
+SUGGESTED_SQUARE_COLOR = 'pink'
 
 PIECE_COLORS = {
     Color.BLACK: 'black',
@@ -37,11 +37,21 @@ def draw_chessboard_with_labels(chessboard: Chessboard, suggested_moves: List[Po
                 fill = SQUARE_COLORS[Color.WHITE]
             else:
                 fill = SQUARE_COLORS[Color.BLACK]
-            draw_square(dwg, fill, position)
+            draw_square(
+                dwg=dwg,
+                fill=fill,
+                position=position,
+                class_=f'chess-square pos-{position.to_string()}'
+            )
 
     for move in suggested_moves:
         print("---" + str(move))
-        draw_square(dwg, SUGGESTED_SQUARE, move)
+        draw_square(
+            dwg=dwg,
+            fill=SUGGESTED_SQUARE_COLOR,
+            position=move,
+            class_=f'chess-suggestion pos-{move.to_string()}'
+        )
 
     for piece in chessboard.pieces_list.values():
         col = piece.position.col
@@ -54,17 +64,38 @@ def draw_chessboard_with_labels(chessboard: Chessboard, suggested_moves: List[Po
 
         adjusted_y_position = center_y + (square_size * 0.1)
 
-        dwg.add(dwg.circle(center=(center_x, center_y), r=square_size * 0.3, fill=piece_color))
+        pos_str = piece.position.to_string()
+        dwg.add(dwg.circle(
+            center=(center_x, center_y),
+            r=square_size * 0.3,
+            fill=piece_color,
+            class_=f'chess-piece pos-{pos_str}')
+        )
 
-        dwg.add(dwg.text(piece.type.value, insert=(center_x, adjusted_y_position), fill=text_color, font_size='20',
-                         font_family='Arial', text_anchor="middle"))
+        dwg.add(dwg.text(
+            piece.type.value,
+            insert=(center_x, adjusted_y_position),
+            fill=text_color,
+            font_size='20',
+            font_family='Arial',
+            text_anchor="middle",
+            class_=f'chess-piece-text pos-{pos_str}'
+        ))
 
     dwg.save()
 
 
-def draw_square(dwg, fill, position):
-    dwg.add(dwg.rect(
-        insert=(position.col * square_size, (7 - position.row)* square_size),
-        size=(square_size, square_size),
-        fill=fill)
-    )
+def draw_square(dwg, fill, position, class_: str | None = None):
+    if class_ is None:
+        dwg.add(dwg.rect(
+            insert=(position.col * square_size, (7 - position.row) * square_size),
+            size=(square_size, square_size),
+            fill=fill)
+        )
+    else:
+        dwg.add(dwg.rect(
+            class_=class_,
+            insert=(position.col * square_size, (7 - position.row) * square_size),
+            size=(square_size, square_size),
+            fill=fill)
+        )

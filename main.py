@@ -18,6 +18,45 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+suggestion_js_script = """
+        <script>
+            
+            function addOnlickOnItems(items) {
+                for (var i = 0; i < items.length; i++) {
+                    classes = items[i].classList
+                    for (var j = 0; j < classes.length; j++) {
+                        var cls = classes[j]
+                        if (cls.startsWith('pos-')) {
+                           let pos = cls.substr('pos-'.length)
+                           items[i].onclick = () => gotoSuggestion(pos)
+                        }
+                    } 
+                }
+            }
+            
+            function gotoSuggestion(pos) {
+                form = document.getElementById("chess-suggestion-form")
+                input = document.getElementById("chess-suggestion-input")
+                input.value = pos
+                form.submit()
+            }
+            
+            let squares = document.getElementsByClassName('chess-square')
+            addOnlickOnItems(squares)
+        </script>
+"""
+
+
+def form_suggestion(chessboard, color=Color.WHITE.value):
+    return f"""
+                <form id='chess-suggestion-form' action="/suggestion" method="post">
+                    <input id='chess-suggestion-input' type="text" name="position" placeholder="Position">
+                    <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
+                    <input type="hidden" name="next_player" value="{color}"/>
+                    <button type="submit">Suggestion</button>
+                </form>
+"""
+
 
 @app.get("/", response_class=HTMLResponse)
 async def get_chessboard():
@@ -37,13 +76,9 @@ async def get_chessboard():
                     <input type="hidden" name="next_player" value="{Color.WHITE.value}"/>
                     <button type="submit">Update Board</button>
                 </form>
-                <form action="/suggestion" method="post">
-                    <input type="text" name="position" placeholder="Position">
-                    <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
-                    <input type="hidden" name="next_player" value="{Color.WHITE.value}"/>
-                    <button type="submit">Suggestion</button>
-                </form>
+                {form_suggestion(chessboard)}
             </body>
+        {suggestion_js_script}
         </html>
         """
 
@@ -78,16 +113,12 @@ async def update_chessboard(
                 <input type="hidden" name="next_player" value="{next_player.value}"/>
                 <button type="submit">Update Board</button>
             </form>
-            <form action="/suggestion" method="post">
-                <input type="text" name="position" placeholder="Position">
-                <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
-                <input type="hidden" name="next_player" value="{next_player.value}"/>
-                <button type="submit">Suggestion</button>
-            </form>
+            {form_suggestion(chessboard, next_player.value)}
             <div style='color: red'>{error_msg}</div>
             <button onclick='window.location = "/";'>Nouvelle partie</button>
             <div style='color: purple'>Trait aux {next_player.toLabel()}s</div>
         </body>
+        {suggestion_js_script}
     </html>
     """
 
@@ -103,6 +134,7 @@ async def update_chessboard(
 
     piece_expected_to_move = chessboard.getPiece(position)
     if piece_expected_to_move is not None:
+        print(f'piece_expected_to_move {piece_expected_to_move}')
         error_msg = ""
         suggestion_pos = position_str if next_player == piece_expected_to_move.color else ""
         moves = extract_authorized_squares(chessboard=chessboard, piece=piece_expected_to_move)
@@ -111,6 +143,7 @@ async def update_chessboard(
         suggestion_pos = ""
         moves = []
 
+    print(f'suggestion_pos {suggestion_pos}')
     draw_chessboard_with_labels(chessboard, moves)
     with open("chessboard_with_labels.svg", "r") as file:
         svg_content = file.read()
@@ -120,22 +153,18 @@ async def update_chessboard(
         <body>
             {svg_content}
             <form action="/update" method="post">
-                <input type="text" name="movement" placeholder="Mouvement" value={suggestion_pos} autofocus>
+                <input type="text" name="movement" placeholder="Mouvement" value="{suggestion_pos}" autofocus>
                 <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
                 <input type="hidden" name="next_player" value="{next_player.value}"/>
                 <button type="submit">Update Board</button>
             </form>
-            <form action="/suggestion" method="post">
-                <input type="text" name="position" placeholder="Position" value={position_str}>
-                <input type="hidden" name="chessboard" value="{chessboard.to_string()}"/>
-                <input type="hidden" name="next_player" value="{next_player.value}"/>
-                <button type="submit">Suggestion</button>
-            </form>
+            {form_suggestion(chessboard, next_player.value)}
             <div>{[f'{position_str}-{move.to_string()}' for move in moves]}</div>
             <div style='color: red'>{error_msg}</div>
             <button onclick='window.location = "/";'>Nouvelle partie</button>
             <div style='color: purple'>Trait aux {next_player.toLabel()}s</div>
         </body>
+        {suggestion_js_script}
     </html>
     """
 
@@ -160,12 +189,12 @@ def do_movement(chessboard: Chessboard, movement: Movement, player: Color):
         print("Unauthorized move")
         return chessboard, f"Ce coup n'est pas autorisé: {movement.target.to_string()}"
 
-
     del chessboard.pieces_list[piece.position]
     piece.position = movement.target
     chessboard.pieces_list[movement.target] = piece
 
     return chessboard, ""
+
 
 def is_movement_authorized(piece: PieceInfo, movement: Movement, chessboard: Chessboard) -> bool:
     if piece.type == PieceType.PAWN:
@@ -173,6 +202,7 @@ def is_movement_authorized(piece: PieceInfo, movement: Movement, chessboard: Che
         return movement.target in authorized_squares
 
     return True
+
 
 def extract_authorized_squares(chessboard: Chessboard, piece: PieceInfo) -> List[Position]:
     if piece.type == PieceType.PAWN:
@@ -195,7 +225,6 @@ def extract_authorized_squares(chessboard: Chessboard, piece: PieceInfo) -> List
             authorized_squares.append(right_diag_piece.position)
         return authorized_squares
     return []
-
 
 
 def parse_pieces_input(pieces_str):
