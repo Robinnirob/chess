@@ -167,7 +167,6 @@ def do_movement(chessboard: Chessboard, movement: Movement, player: Color):
 
     return chessboard, ""
 
-
 def is_movement_authorized(piece: PieceInfo, movement: Movement, chessboard: Chessboard) -> bool:
     if piece.type == PieceType.PAWN:
         authorized_squares = extract_authorized_squares(chessboard=chessboard, piece=piece)
