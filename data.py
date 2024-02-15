@@ -118,9 +118,12 @@ class Chessboard:
 
     def to_string(self):
         pieces_str = ""
-        for piece in self.pieces_list.values():
-            pieces_str += f"{piece.type.value},{piece.color.value},{piece.position.to_string()};"
-        return pieces_str
+        pieces = self.pieces_list.values()
+        if len(pieces) > 0:
+            for piece in pieces:
+                pieces_str += f"{piece.type.value},{piece.color.value},{piece.position.to_string()};"
+            return pieces_str[0:-1]
+        return ""
 
     @classmethod
     def from_str(cls, pieces_as_str: str):
