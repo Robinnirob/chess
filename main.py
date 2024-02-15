@@ -104,14 +104,25 @@ def do_movement(chessboard, movement, player):
     return chessboard, ""
 
 
-def is_movement_authorized(piece: PieceInfo, movement: Movement):
-
+def is_movement_authorized(piece: PieceInfo, movement: Movement, chessboard: Chessboard) -> bool:
     if piece.type == PieceType.PAWN:
+        direction_value = 1 if piece.color == Color.WHITE else -1
         is_initial_position = (
-                (piece.color == Color.WHITE and movement.init.row == 1) or
-                (piece.color == Color.BLACK and movement.init.row == 6)
+                (piece.color == Color.WHITE and piece.position.row == 1) or
+                (piece.color == Color.BLACK and piece.position.row == 6)
         )
-        # TODO
+        authorized_squares = [piece.position.offset(0, direction_value)]
+        if is_initial_position:
+            authorized_squares.append(piece.position.offset(0, direction_value * 2))
+
+        left_diag_piece = chessboard.getPiece(piece.position.offset(-1, direction_value))
+        right_diag_piece = chessboard.getPiece(piece.position.offset(-1, direction_value))
+        if left_diag_piece is not None and left_diag_piece.color != piece.color:
+            authorized_squares.append(left_diag_piece.position)
+        if right_diag_piece is not None and right_diag_piece.color != piece.color:
+            authorized_squares.append(right_diag_piece.position)
+
+        return movement.target in authorized_squares
 
     return True
 

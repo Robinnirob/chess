@@ -11,16 +11,19 @@ class Position:
 
     def to_string(self):
         col_as_str = chr(ord('a') + self.col)
-        return f"{col_as_str}{self.row}"
+        return f"{col_as_str}{self.row + 1}"
 
     @classmethod
     def from_str(cls, position_as_str):
         col = ord(position_as_str[0]) - ord("a")
-        row = int(position_as_str[1:])
+        row = int(position_as_str[1:]) - 1
         return Position(col, row)
 
+    def offset(self, col_offset, row_offset):
+        return Position(self.col + col_offset, self.row + row_offset)
 
-@dataclass(frozen=True)
+
+@dataclass(eq=True)
 class Movement:
     init: Position
     target: Position
@@ -107,6 +110,11 @@ class PieceInfo:
 @dataclass
 class Chessboard:
     pieces_list: dict[Position, PieceInfo]
+
+    def getPiece(self, position: Position) -> PieceInfo | None:
+        if position in self.pieces_list:
+            return self.pieces_list[position]
+        return None
 
     def to_string(self):
         pieces_str = ""
