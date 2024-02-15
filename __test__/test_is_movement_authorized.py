@@ -52,7 +52,7 @@ class MovementTest(unittest.TestCase):
         self.assertTrue(actual)
 
     def test_should_authorize_white_pawn_to_capture_en_passant(self):
-        move, piece, chessboard = self.init(init_pos='g4', target_pos='g5', enemy_positions=['g6'])
+        move, piece, chessboard = self.init(init_pos='a5', target_pos='b6', hystory=['b7-b5'])
         actual = is_movement_authorized(piece, move, chessboard)
         self.assertTrue(actual)
 
