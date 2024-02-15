@@ -57,7 +57,14 @@ class MovementTest(unittest.TestCase):
         self.assertTrue(actual)
 
 
-    def init(self, type='P', color='W', init_pos='a3', target_pos='a3', enemy_positions: List[str] = []):
+    def init(self,
+             type='P',
+             color='W',
+             init_pos='a3',
+             target_pos='a3',
+             history_moves: List[str] = [],
+             enemy_positions: List[str] = [],
+             ):
         piece = PieceInfo.from_str(type, color, init_pos)
         other_color = Color.BLACK if piece.color == Color.WHITE else Color.WHITE
         other_pieces = [PieceInfo.from_str('P', other_color.value, position) for position in enemy_positions]
