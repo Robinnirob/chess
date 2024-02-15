@@ -67,7 +67,7 @@ suggestion_js_script = """
         add_suggestion_behavior(elements)
         
         let currentSuggestionItem = document.getElementById("chess-current-suggestion")
-        if (currentSuggestionItem !== undefined && currentSuggestionItem.value !== undefined) {
+        if (currentSuggestionItem !== undefined && currentSuggestionItem.value !== "") {
             elements = document.getElementsByClassName('chess-suggestion')
             add_move_behavior(elements, currentSuggestionItem.value)
         }
@@ -190,7 +190,6 @@ async def update_chessboard(
             <button onclick='window.location = "/";'>Nouvelle partie</button>
             <div style='color: purple'>Trait aux {next_player.toLabel()}s</div>
         </body>
-        {suggestion_js_script}
         {suggestion_js_script}
     </html>
     """
