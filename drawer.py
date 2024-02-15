@@ -9,7 +9,7 @@ SQUARE_COLORS = {
     Color.WHITE: '#7A511D',
 }
 
-SUGGESTED_SQUARE_COLOR = 'pink'
+SUGGESTED_SQUARE_COLOR = 'lightblue'
 
 PIECE_COLORS = {
     Color.BLACK: 'black',
