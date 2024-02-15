@@ -41,7 +41,6 @@ async def get_chessboard():
         """
 
 
-
 @app.post("/update", response_class=HTMLResponse)
 async def update_chessboard(
         chessboard_str: str = Form(..., alias='chessboard'),
@@ -50,8 +49,6 @@ async def update_chessboard(
     chessboard = Chessboard.from_str(chessboard_str)
     movement = Movement.from_str(movement_str)
     next_player = Color.from_str(next_player_str)
-
-    print(f"aaaaaaaaaaaaaaaaaaaa {chessboard.to_string()}")
 
     chessboard, error_msg = do_movement(chessboard, movement, next_player)
     draw_chessboard_with_labels(chessboard)
