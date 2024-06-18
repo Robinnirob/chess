@@ -23,6 +23,7 @@ initial_positions = {
 
 # Fonction pour dessiner l'échiquier
 def draw_board():
+    canvas.delete("all")
     for row in range(BOARD_SIZE):
         for col in range(BOARD_SIZE):
             color = "white" if (row + col) % 2 == 0 else "gray"
@@ -52,8 +53,12 @@ def on_square_click(event):
     col = event.x // SQUARE_SIZE
     row = event.y // SQUARE_SIZE
     case = chr(col + 97) + str(BOARD_SIZE - row)
+    piece = initial_positions[case]
+    del initial_positions[case]
+    new_case = chr(col + 97) + str(BOARD_SIZE - row + 1)
+    initial_positions[new_case] = piece
+    draw_board()
     print(f"Clic sur la case {case}")
-    messagebox.showinfo("Case cliquée", f"Clic sur la case {case}")
 
 # Fonction pour gérer la soumission du formulaire
 def on_form_submit():
