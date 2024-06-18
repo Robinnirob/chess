@@ -69,9 +69,13 @@ def on_square_click(event):
         selected_case = case
         if piece_in_current_case is not None:
             if piece_in_current_case[1] == "p":
-                authorized_case1 = chr(col + 97) + str(BOARD_SIZE - row + 1)
-                authorized_case2 = chr(col + 97) + str(BOARD_SIZE - row - 1)
-                authorized_cases = [authorized_case1] if piece_in_current_case[0] == "w" else [authorized_case2]
+                if piece_in_current_case[0] == "w":
+                    authorized_cases = [chr(col + 97) + str(BOARD_SIZE - row + 1)]
+                    if case[1] == "2": authorized_cases.append(chr(col + 97) + str(BOARD_SIZE - row + 2))
+                else:
+                    authorized_cases = [chr(col + 97) + str(BOARD_SIZE - row - 1)]
+                    if case[1] == "7": authorized_cases.append(chr(col + 97) + str(BOARD_SIZE - row - 2))
+            #elif piece_in_current_case[1] == "r"
     elif selected_case == case:
         selected_case = None
         authorized_cases = []
