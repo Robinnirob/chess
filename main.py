@@ -20,20 +20,23 @@ initial_positions = {
     'a7': 'bp', 'b7': 'bp', 'c7': 'bp', 'd7': 'bp', 'e7': 'bp', 'f7': 'bp', 'g7': 'bp', 'h7': 'bp',
     'a8': 'br', 'b8': 'bn', 'c8': 'bb', 'd8': 'bq', 'e8': 'bk', 'f8': 'bb', 'g8': 'bn', 'h8': 'br'
 }
+selected_case = None
 
 # Fonction pour dessiner l'échiquier
 def draw_board():
     canvas.delete("all")
     for row in range(BOARD_SIZE):
         for col in range(BOARD_SIZE):
+            case = chr(col + 97) + str(BOARD_SIZE - row)
             color = "white" if (row + col) % 2 == 0 else "gray"
+            color = "blue" if selected_case == case else color
             x1 = col * SQUARE_SIZE
             y1 = row * SQUARE_SIZE
             x2 = x1 + SQUARE_SIZE
             y2 = y1 + SQUARE_SIZE
             canvas.create_rectangle(x1, y1, x2, y2, fill=color)
             # Calcul de l'adresse de la case
-            case = chr(col + 97) + str(BOARD_SIZE - row)
+
             if case in initial_positions:
                 piece = initial_positions[case]
                 draw_piece(x1, y1, piece)
@@ -53,11 +56,15 @@ def on_square_click(event):
     col = event.x // SQUARE_SIZE
     row = event.y // SQUARE_SIZE
     case = chr(col + 97) + str(BOARD_SIZE - row)
-    piece = initial_positions[case]
-    del initial_positions[case]
-    if piece[1] == "p":
-        new_case = chr(col + 97) + str(BOARD_SIZE - row + 1) if piece[0] == "w" else chr(col + 97) + str(BOARD_SIZE - row - 1) 
-        initial_positions[new_case] = piece
+    global selected_case
+    piece = initial_positions[selected_case] if selected_case in initial_positions else None
+
+    if selected_case is None or piece is None:
+        selected_case = case
+    else:
+        del initial_positions[selected_case]
+        initial_positions[case] = piece
+        selected_case = None
     draw_board()
     print(f"Clic sur la case {case}")
 
