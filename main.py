@@ -72,9 +72,21 @@ def on_square_click(event):
                 if piece_in_current_case[0] == "w":
                     authorized_cases = [chr(col + 97) + str(BOARD_SIZE - row + 1)]
                     if case[1] == "2": authorized_cases.append(chr(col + 97) + str(BOARD_SIZE - row + 2))
+                    right_diag_case = chr(col + 97 + 1) + str(BOARD_SIZE - row + 1)  
+                    left_diag_case = chr(col + 97 - 1) + str(BOARD_SIZE - row + 1)
+                    if right_diag_case in initial_positions and initial_positions[right_diag_case][0] == "b":
+                        authorized_cases.append(right_diag_case)
+                    if left_diag_case in initial_positions and initial_positions[left_diag_case][0] == "b":
+                        authorized_cases.append(left_diag_case)
                 else:
                     authorized_cases = [chr(col + 97) + str(BOARD_SIZE - row - 1)]
                     if case[1] == "7": authorized_cases.append(chr(col + 97) + str(BOARD_SIZE - row - 2))
+                    right_diag_case = chr(col + 97 + 1) + str(BOARD_SIZE - row - 1)  
+                    left_diag_case = chr(col + 97 - 1) + str(BOARD_SIZE - row - 1)
+                    if right_diag_case in initial_positions and initial_positions[right_diag_case][0] == "w":
+                        authorized_cases.append(right_diag_case)
+                    if left_diag_case in initial_positions and initial_positions[left_diag_case][0] == "w":
+                        authorized_cases.append(left_diag_case)              
             #elif piece_in_current_case[1] == "r"
     elif selected_case == case:
         selected_case = None
