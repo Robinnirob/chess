@@ -110,7 +110,6 @@ class PieceInfo:
 @dataclass
 class Chessboard:
     pieces_list: dict[Position, PieceInfo]
-    history_moves: List[Movement]
 
     def getPiece(self, position: Position) -> PieceInfo | None:
         if position in self.pieces_list:
