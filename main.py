@@ -21,6 +21,7 @@ initial_positions = {
     'a8': 'br', 'b8': 'bn', 'c8': 'bb', 'd8': 'bq', 'e8': 'bk', 'f8': 'bb', 'g8': 'bn', 'h8': 'br'
 }
 selected_case = None
+current_color = "w"
 
 # Fonction pour dessiner l'échiquier
 def draw_board():
@@ -57,14 +58,18 @@ def on_square_click(event):
     row = event.y // SQUARE_SIZE
     case = chr(col + 97) + str(BOARD_SIZE - row)
     global selected_case
+    global current_color
     piece = initial_positions[selected_case] if selected_case in initial_positions else None
 
-    if selected_case is None or piece is None:
+    if selected_case is None or piece is None or piece[0] != current_color:
         selected_case = case
+    elif selected_case == case:
+        selected_case = None
     else:
         del initial_positions[selected_case]
         initial_positions[case] = piece
         selected_case = None
+        current_color = "b" if current_color == "w" else "w"
     draw_board()
     print(f"Clic sur la case {case}")
 
