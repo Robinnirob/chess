@@ -1,8 +1,28 @@
 # Chess for Nicolas
 
-# Dev
+## Getting started
 
 * Install python 3.11
+    * Add python in PATH
+* In a powershell as administrator
+
+```
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted
+```
+
+* In a powershell with the user profile  (pyenv installation)
+
+```
+Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/pyenv-win/pyenv-win/master/pyenv-win/install-pyenv-win.ps1" -OutFile "./install-pyenv-win.ps1"; &"./install-pyenv-win.ps1"
+```
+
+* In a powershell as administrator
+```
+Set-ExecutionPolicy -ExecutionPolicy Undefined
+```
+
+## Dev
+
 * Execute the following actions :
 
 ```
