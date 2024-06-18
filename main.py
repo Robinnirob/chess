@@ -55,8 +55,9 @@ def on_square_click(event):
     case = chr(col + 97) + str(BOARD_SIZE - row)
     piece = initial_positions[case]
     del initial_positions[case]
-    new_case = chr(col + 97) + str(BOARD_SIZE - row + 1)
-    initial_positions[new_case] = piece
+    if piece[1] == "p":
+        new_case = chr(col + 97) + str(BOARD_SIZE - row + 1) if piece[0] == "w" else chr(col + 97) + str(BOARD_SIZE - row - 1) 
+        initial_positions[new_case] = piece
     draw_board()
     print(f"Clic sur la case {case}")
 
