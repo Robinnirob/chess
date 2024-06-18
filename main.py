@@ -21,6 +21,7 @@ initial_positions = {
     'a8': 'br', 'b8': 'bn', 'c8': 'bb', 'd8': 'bq', 'e8': 'bk', 'f8': 'bb', 'g8': 'bn', 'h8': 'br'
 }
 selected_case = None
+authorized_cases = []
 current_color = "w"
 
 # Fonction pour dessiner l'échiquier
@@ -30,6 +31,7 @@ def draw_board():
         for col in range(BOARD_SIZE):
             case = chr(col + 97) + str(BOARD_SIZE - row)
             color = "white" if (row + col) % 2 == 0 else "gray"
+            color = "green" if case in authorized_cases else color
             color = "blue" if selected_case == case else color
             x1 = col * SQUARE_SIZE
             y1 = row * SQUARE_SIZE
@@ -59,16 +61,25 @@ def on_square_click(event):
     case = chr(col + 97) + str(BOARD_SIZE - row)
     global selected_case
     global current_color
-    piece = initial_positions[selected_case] if selected_case in initial_positions else None
+    global authorized_cases
+    piece_in_previous_selected_case = initial_positions[selected_case] if selected_case in initial_positions else None
+    piece_in_current_case = initial_positions[case] if case in initial_positions else None
 
-    if selected_case is None or piece is None or piece[0] != current_color:
+    if selected_case is None or piece_in_previous_selected_case is None or piece_in_previous_selected_case[0] != current_color:
         selected_case = case
+        if piece_in_current_case is not None:
+            if piece_in_current_case[1] == "p":
+                authorized_case1 = chr(col + 97) + str(BOARD_SIZE - row + 1)
+                authorized_case2 = chr(col + 97) + str(BOARD_SIZE - row - 1)
+                authorized_cases = [authorized_case1] if piece_in_current_case[0] == "w" else [authorized_case2]
     elif selected_case == case:
         selected_case = None
+        authorized_cases = []
     else:
         del initial_positions[selected_case]
-        initial_positions[case] = piece
+        initial_positions[case] = piece_in_previous_selected_case
         selected_case = None
+        authorized_cases = []
         current_color = "b" if current_color == "w" else "w"
     draw_board()
     print(f"Clic sur la case {case}")
