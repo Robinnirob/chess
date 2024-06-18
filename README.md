@@ -26,6 +26,7 @@ Set-ExecutionPolicy -ExecutionPolicy Undefined
 * Execute the following actions :
 
 ```
+poetry self add poetry-pyinstaller-plugin
 python -m ensurepip --upgrade
 echo "Add pip3 directory path in PATH (as explained in the comments)"
 pip3 install poetry
