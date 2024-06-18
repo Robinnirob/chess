@@ -33,3 +33,9 @@ pip3 install poetry
 poetry install
 python main.py
 ```
+
+## Create .exe File
+
+```
+poetry build
+```
