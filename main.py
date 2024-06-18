@@ -80,11 +80,15 @@ def on_square_click(event):
         selected_case = None
         authorized_cases = []
     else:
-        del initial_positions[selected_case]
-        initial_positions[case] = piece_in_previous_selected_case
-        selected_case = None
-        authorized_cases = []
-        current_color = "b" if current_color == "w" else "w"
+        if case in authorized_cases:
+            del initial_positions[selected_case]
+            initial_positions[case] = piece_in_previous_selected_case
+            selected_case = None
+            authorized_cases = []
+            current_color = "b" if current_color == "w" else "w"
+            info['text'] = ""
+        else:
+            info['text'] = "Ce coup n'est pas autorisé"
     draw_board()
     print(f"Clic sur la case {case}")
 
@@ -113,6 +117,11 @@ entry.pack(side=tk.LEFT, padx=5)
 
 submit_button = tk.Button(form_frame, text="Valider", command=on_form_submit)
 submit_button.pack(side=tk.LEFT, padx=5)
+
+info_frame = tk.Frame(root)
+info_frame.pack(pady=10)
+info = tk.Label(info_frame, text="")
+info.pack(side=tk.LEFT, padx=5)
 
 # Démarrer la boucle principale Tkinter
 root.mainloop()
