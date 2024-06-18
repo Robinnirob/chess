@@ -1,17 +1,12 @@
 [tool.poetry]
 name = "chess"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
-authors = ["Benjamin JALON <bjalon@qastia.com>"]
+authors = ["Robin Chalas"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
-fastapi = "^0.109.2"
-svgwrite = "^1.4.3"
-uvicorn = "^0.27.1"
-python-multipart = "^0.0.9"
-
+python = "^3.11.6"
 
 [build-system]
 requires = ["poetry-core"]
