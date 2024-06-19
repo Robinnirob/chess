@@ -51,7 +51,6 @@ def piece_name_from_str(value: str):
         return PieceName.KING
     raise ValueError(f'{value} is not a valid piece name')
 
-
 @dataclass(frozen=True)
 class Position:
     col: int
@@ -59,6 +58,9 @@ class Position:
 
     def __str__(self):
         return chr(self.col + 97) + str(self.row)
+
+    def offset(self, col: int = 0, row: int = 0):
+        return Position(self.col + col, self.row + row)
 
 
 def position_factory(info: str):
