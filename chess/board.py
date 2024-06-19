@@ -1,10 +1,11 @@
-from typing import Dict
+from typing import Dict, List
 
-from chess.data import Position, Piece, position_factory, piece_factory
+from chess.data import Position, Piece, position_factory, piece_factory, PieceColor
 
 
 class Board:
     piece_positions: Dict[Position, Piece]
+    pieces_taken: List[Piece] = []
 
     def __init__(self, situation: Dict[str, str] = None):
         self.piece_positions = _to_piece_positions({
@@ -19,14 +20,18 @@ class Board:
 
     def move(self, source: Position, target: Position):
         if source not in self.piece_positions:
-            raise ValueError(f'Source {source} is not in board')
+            raise ValueError(f'No piece found in {source} on the board')
 
         piece = self.piece_positions[source]
         del self.piece_positions[source]
+        if target in self.piece_positions: self.pieces_taken.append(self.piece_positions[target])
         self.piece_positions[target] = piece
 
     def move_as_str(self, source: str, target: str):
         self.move(position_factory(source), position_factory(target))
+
+    def get_pieces_taken(self, color: PieceColor):
+        return [piece for piece in self.pieces_taken if piece.color == color]
 
 
 def _to_piece_positions(situation: Dict[str, str]):

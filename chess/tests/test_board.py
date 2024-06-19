@@ -1,7 +1,7 @@
 import unittest
 
 from chess.board import Board
-from chess.data import Position, PieceName, PieceColor, Piece, position_factory
+from chess.data import PieceColor, position_factory, piece_factory
 
 
 class TestBoard(unittest.TestCase):
@@ -25,6 +25,24 @@ class TestBoard(unittest.TestCase):
         board.move_as_str('b7', 'b6')
         self.assertIsNone(board.get_piece(position_factory('b7')))
         self.assertEqual('PAWN BLACK', str(board.get_piece(position_factory('b6'))))
+
+
+    def test_should_return_no_piece_taken_on_init(self):
+        board = Board()
+        pieces = board.get_pieces_taken(PieceColor.WHITE)
+        self.assertEqual([], pieces)
+
+    def test_should_return_no_piece_taken_when_move_not_take_piece(self):
+        board = Board(situation={'b7': 'bp'})
+        board.move_as_str('b7', 'b6')
+        pieces = board.get_pieces_taken(PieceColor.WHITE)
+        self.assertEqual([], pieces)
+
+    def test_should_return_piece_taken_when_move_take_piece(self):
+        board = Board(situation={'b7': 'bp', 'c5': 'wp'})
+        board.move_as_str('b7', 'c5')
+        pieces = board.get_pieces_taken(PieceColor.WHITE)
+        self.assertEqual([piece_factory('wp')], pieces)
 
 
 if __name__ == '__main__':
