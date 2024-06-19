@@ -29,6 +29,8 @@ class GameManager:
             return []
         elif selected_piece.name == PieceName.PAWN:
             return self.manage_pawn_moves(selected_piece)
+        elif selected_piece.name == PieceName.KNIGHT:
+            return self.manage_knight_moves(selected_piece)
         raise ValueError("")
 
     def manage_pawn_moves(self, selected_piece) -> List[Position]:
@@ -36,10 +38,31 @@ class GameManager:
         is_initial_position = INITIAL_PAWN_ROW_BY_COLOR[selected_piece.color] == self.selected_position.row
         result = [self.selected_position.offset(row=direction)]
         if is_initial_position: result.append(self.selected_position.offset(row=direction * 2))
-        if self.is_offset_position_has_opponent_piece(row=direction, col=1): result.append(self.selected_position.offset(row=direction, col=1))
-        if self.is_offset_position_has_opponent_piece(row=direction, col=-1): result.append(self.selected_position.offset(row=direction, col=-1))
+        if self.is_offset_position_has_opponent_piece(row=direction, col=1): result.append(
+            self.selected_position.offset(row=direction, col=1))
+        if self.is_offset_position_has_opponent_piece(row=direction, col=-1): result.append(
+            self.selected_position.offset(row=direction, col=-1))
         return result
 
+    def manage_knight_moves(self, selected_piece) -> List[Position]:
+        result = []
+        self.add_if_offset_position_has_opponent_piece(result=result, row=-1, col=-2)
+        self.add_if_offset_position_has_opponent_piece(result=result, row=1, col=-2)
+        self.add_if_offset_position_has_opponent_piece(result=result, row=-2, col=-1)
+        self.add_if_offset_position_has_opponent_piece(result=result, row=2, col=-1)
+        self.add_if_offset_position_has_opponent_piece(result=result, row=-2, col=1)
+        self.add_if_offset_position_has_opponent_piece(result=result, row=2, col=1)
+        self.add_if_offset_position_has_opponent_piece(result=result, row=-1, col=2)
+        self.add_if_offset_position_has_opponent_piece(result=result, row=1, col=2)
+        return result
+
+    def add_if_offset_position_has_opponent_piece(self, result: List[Position], row: int, col: int):
+        if not self.is_offset_position_has_current_player_piece(row=row, col=col):
+            result.append(self.selected_position.offset(row=row, col=col))
+
+    def is_offset_position_has_current_player_piece(self, row: int, col: int) -> bool:
+        piece_on_offset_position = self.board.get_piece(self.selected_position.offset(row=row, col=col))
+        return piece_on_offset_position is not None and piece_on_offset_position.color == self.current_player
     def is_offset_position_has_opponent_piece(self, row: int, col: int) -> bool:
         piece_on_offset_position = self.board.get_piece(self.selected_position.offset(row=row, col=col))
         return piece_on_offset_position is not None and piece_on_offset_position.color != self.current_player
