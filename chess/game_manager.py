@@ -14,6 +14,9 @@ class GameManager:
     def __init__(self, board: Board):
         self.board = board
 
+    def get_selected_position(self):
+        return self.selected_position
+
     def get_current_player(self) -> PieceColor:
         return self.current_player
 
@@ -29,9 +32,9 @@ class GameManager:
             return []
         elif selected_piece.name == PieceName.PAWN:
             return self.manage_pawn_moves(selected_piece)
-        elif selected_piece.name == PieceName.KNIGHT:
+        elif selected_piece.name == PieceName.NIGHT:
             return self.manage_knight_moves(selected_piece)
-        raise ValueError("")
+        return []
 
     def manage_pawn_moves(self, selected_piece) -> List[Position]:
         direction = 1 if selected_piece.color == PieceColor.WHITE else -1
@@ -66,3 +69,4 @@ class GameManager:
     def is_offset_position_has_opponent_piece(self, row: int, col: int) -> bool:
         piece_on_offset_position = self.board.get_piece(self.selected_position.offset(row=row, col=col))
         return piece_on_offset_position is not None and piece_on_offset_position.color != self.current_player
+

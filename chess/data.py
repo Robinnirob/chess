@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 BOARD_SIZE = 8
+SQUARE_SIZE = 60
 
 
 class PieceColor(Enum):
@@ -15,7 +16,7 @@ def piece_color_from_str(value: str) -> PieceColor:
 
 class PieceName(Enum):
     PAWN = 0
-    KNIGHT = 1
+    NIGHT = 1
     BISHOP = 2
     ROOK = 3
     QUEEN = 4
@@ -24,7 +25,7 @@ class PieceName(Enum):
     def __str__(self):
         if self == PieceName.PAWN:
             return 'p'
-        elif self == PieceName.KNIGHT:
+        elif self == PieceName.NIGHT:
             return 'n'
         elif self == PieceName.BISHOP:
             return 'b'
@@ -40,7 +41,7 @@ def piece_name_from_str(value: str):
     if value == 'p':
         return PieceName.PAWN
     elif value == 'n':
-        return PieceName.KNIGHT
+        return PieceName.NIGHT
     elif value == 'b':
         return PieceName.BISHOP
     elif value == 'r':
@@ -57,7 +58,7 @@ class Position:
     row: int
 
     def __str__(self):
-        return chr(self.col + 97) + str(self.row)
+        return chr(self.col + 97) + str(self.row + 1)
 
     def offset(self, col: int = 0, row: int = 0):
         return Position(self.col + col, self.row + row)
@@ -74,6 +75,9 @@ def position_factory(info: str):
 class Piece:
     color: PieceColor
     name: PieceName
+
+    def icon(self):
+        return self.name.name[0].upper()
 
     def __str__(self):
         return f"{self.name.name} {self.color.name}"
