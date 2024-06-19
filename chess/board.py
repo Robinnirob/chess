@@ -14,11 +14,19 @@ class Board:
             'a8': 'br', 'b8': 'bn', 'c8': 'bb', 'd8': 'bq', 'e8': 'bk', 'f8': 'bb', 'g8': 'bn', 'h8': 'br'
         }) if situation is None else _to_piece_positions(situation)
 
-    def move(self, position: str):
-        self.piece_positions = 12
-
     def get_piece(self, position: Position):
         return self.piece_positions[position] if position in self.piece_positions else None
+
+    def move(self, source: Position, target: Position):
+        if source not in self.piece_positions:
+            raise ValueError(f'Source {source} is not in board')
+
+        piece = self.piece_positions[source]
+        del self.piece_positions[source]
+        self.piece_positions[target] = piece
+
+    def move_as_str(self, source: str, target: str):
+        self.move(position_factory(source), position_factory(target))
 
 
 def _to_piece_positions(situation: Dict[str, str]):
