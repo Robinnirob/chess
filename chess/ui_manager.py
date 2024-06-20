@@ -90,7 +90,7 @@ class MainWindow:
         row = BOARD_SIZE - x
         col = y
         position = Position(row=row, col=col)
-        self.game_manager.select_position(position)
+        self.game_manager.do_action(position)
         # info['text'] = "Ce coup n'est pas autorisé"
         self.draw_board()
         print(f"Clic sur la case {position}")
