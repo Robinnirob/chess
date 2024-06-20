@@ -51,6 +51,10 @@ class GameManager:
             return self.manage_knight_moves()
         elif selected_piece.name == PieceName.ROOK:
             return self.manage_rook_moves()
+        elif selected_piece.name == PieceName.BISHOP:
+            return self.manage_bishop_moves()
+        elif selected_piece.name == PieceName.QUEEN:
+            return self.manage_queen_moves()
         return []
 
     def manage_pawn_moves(self) -> List[Position]:
@@ -91,6 +95,28 @@ class GameManager:
             has_found_piece_or_edge = self.add_if_offset_position_has_not_current_color_piece(result=result, col=col_offset)
             if has_found_piece_or_edge: break
 
+        return result
+
+    def manage_bishop_moves(self):
+        result = []
+        for diag_offset in range(1, 8):
+            has_found_piece_or_edge = self.add_if_offset_position_has_not_current_color_piece(result=result, row=diag_offset, col=diag_offset)
+            if has_found_piece_or_edge: break
+        for diag_offset in range(1, 8):
+            has_found_piece_or_edge = self.add_if_offset_position_has_not_current_color_piece(result=result, row=diag_offset, col=-diag_offset)
+            if has_found_piece_or_edge: break
+        for diag_offset in range(1, 8):
+            has_found_piece_or_edge = self.add_if_offset_position_has_not_current_color_piece(result=result, row=-diag_offset, col=diag_offset)
+            if has_found_piece_or_edge: break
+        for diag_offset in range(1, 8):
+            has_found_piece_or_edge = self.add_if_offset_position_has_not_current_color_piece(result=result, row=-diag_offset, col=-diag_offset)
+            if has_found_piece_or_edge: break
+        return result
+
+    def manage_queen_moves(self):
+        result = []
+        result.extend(self.manage_bishop_moves())
+        result.extend(self.manage_rook_moves())
         return result
 
     def add_if_offset_position_has_no_piece(self, result: List[Position], row: int = 0, col: int = 0) -> bool:

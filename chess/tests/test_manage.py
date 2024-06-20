@@ -70,13 +70,14 @@ class TestManage(unittest.TestCase):
         board = Board(situation={'b2': 'wp', 'b4': 'bp'})
         manager = GameManager(board=board)
         manager.select_position(position_factory('b2'))
-        self.assertCountEqual([position_factory('b3')],  manager.get_authorized_moves())
+        self.assertCountEqual([position_factory('b3')], manager.get_authorized_moves())
 
-    def test_11_should_not_authorize_white_next_to_the_in_front_position_when_this_position_has_current_player_piece(self):
+    def test_11_should_not_authorize_white_next_to_the_in_front_position_when_this_position_has_current_player_piece(
+            self):
         board = Board(situation={'b2': 'wp', 'b4': 'wp'})
         manager = GameManager(board=board)
         manager.select_position(position_factory('b2'))
-        self.assertCountEqual([position_factory('b3')],  manager.get_authorized_moves())
+        self.assertCountEqual([position_factory('b3')], manager.get_authorized_moves())
 
     def test_12_should_not_authorize_black_in_front_position_when_this_position_has_opponent_piece(self):
         board = Board(situation={'b7': 'bp', 'b6': 'bp'})
@@ -94,13 +95,14 @@ class TestManage(unittest.TestCase):
         board = Board(situation={'b7': 'bp', 'b5': 'bp'})
         manager = GameManager(board=board)
         manager.select_position(position_factory('b7'))
-        self.assertCountEqual([position_factory('b6')],  manager.get_authorized_moves())
+        self.assertCountEqual([position_factory('b6')], manager.get_authorized_moves())
 
-    def test_15_should_not_authorize_black_next_to_the_in_front_position_when_this_position_has_current_player_piece(self):
+    def test_15_should_not_authorize_black_next_to_the_in_front_position_when_this_position_has_current_player_piece(
+            self):
         board = Board(situation={'b7': 'bp', 'b5': 'wp'})
         manager = GameManager(board=board)
         manager.select_position(position_factory('b7'))
-        self.assertCountEqual([position_factory('b6')],  manager.get_authorized_moves())
+        self.assertCountEqual([position_factory('b6')], manager.get_authorized_moves())
 
     def test_16_should_return_white_knight_authorized_moves_when_position_empty(self):
         board = Board(situation={'e4': 'wn'})
@@ -195,6 +197,7 @@ class TestManage(unittest.TestCase):
             position_factory('g4'),
             position_factory('h4'),
         ], manager.get_authorized_moves())
+
     def test_21_should_return_rook_authorized_moves_when_surrounded_by_opponent_pieces(self):
         board = Board(situation={'e4': 'wr', 'e3': 'bp', 'e5': 'bp', 'd4': 'bp', 'f4': 'bp', })
         manager = GameManager(board=board)
@@ -205,8 +208,106 @@ class TestManage(unittest.TestCase):
             position_factory('d4'),
             position_factory('f4'),
         ], manager.get_authorized_moves())
+
     def test_22_should_return_rook_authorized_moves_when_surrounded_by_current_player_pieces(self):
         board = Board(situation={'e4': 'br', 'e3': 'bp', 'e5': 'bp', 'd4': 'bp', 'f4': 'bp', })
+        manager = GameManager(board=board)
+        manager.select_position(position_factory('e4'))
+        self.assertCountEqual([], manager.get_authorized_moves())
+
+    def test_23_should_return_bishop_authorized_moves_when_position_empty(self):
+        board = Board(situation={'e4': 'wb'})
+        manager = GameManager(board=board)
+        manager.select_position(position_factory('e4'))
+        self.assertCountEqual([
+            position_factory('b1'),
+            position_factory('c2'),
+            position_factory('d3'),
+            position_factory('f5'),
+            position_factory('g6'),
+            position_factory('h7'),
+            position_factory('h1'),
+            position_factory('g2'),
+            position_factory('f3'),
+            position_factory('d5'),
+            position_factory('c6'),
+            position_factory('b7'),
+            position_factory('a8'),
+        ], manager.get_authorized_moves())
+
+    def test_24_should_return_bishop_authorized_moves_when_surrounded_by_opponent_pieces(self):
+        board = Board(situation={'e4': 'wb', 'd3': 'bp', 'd5': 'bp', 'f3': 'bp', 'f5': 'bp', })
+        manager = GameManager(board=board)
+        manager.select_position(position_factory('e4'))
+        self.assertCountEqual([
+            position_factory('d3'),
+            position_factory('d5'),
+            position_factory('f3'),
+            position_factory('f5'),
+        ], manager.get_authorized_moves())
+
+    def test_25_should_return_bishop_authorized_moves_when_surrounded_by_current_player_pieces(self):
+        board = Board(situation={'e4': 'bb', 'd3': 'bp', 'd5': 'bp', 'f3': 'bp', 'f5': 'bp', })
+        manager = GameManager(board=board)
+        manager.select_position(position_factory('e4'))
+        self.assertCountEqual([], manager.get_authorized_moves())
+
+    def test_26_should_return_queen_authorized_moves_when_position_empty(self):
+        board = Board(situation={'e4': 'wq'})
+        manager = GameManager(board=board)
+        manager.select_position(position_factory('e4'))
+        self.assertCountEqual([
+            position_factory('b1'),
+            position_factory('c2'),
+            position_factory('d3'),
+            position_factory('f5'),
+            position_factory('g6'),
+            position_factory('h7'),
+            position_factory('h1'),
+            position_factory('g2'),
+            position_factory('f3'),
+            position_factory('d5'),
+            position_factory('c6'),
+            position_factory('b7'),
+            position_factory('a8'),
+            position_factory('e1'),
+            position_factory('e2'),
+            position_factory('e3'),
+            position_factory('e5'),
+            position_factory('e6'),
+            position_factory('e7'),
+            position_factory('e8'),
+            position_factory('a4'),
+            position_factory('b4'),
+            position_factory('c4'),
+            position_factory('d4'),
+            position_factory('f4'),
+            position_factory('g4'),
+            position_factory('h4'),
+        ], manager.get_authorized_moves())
+
+    def test_27_should_return_queen_authorized_moves_when_surrounded_by_opponent_pieces(self):
+        board = Board(
+            situation={'e4': 'wq', 'd3': 'bp', 'd5': 'bp', 'f3': 'bp', 'f5': 'bp', 'e3': 'bp', 'e5': 'bp', 'd4': 'bp',
+                       'f4': 'bp'})
+        manager = GameManager(board=board)
+        manager.select_position(position_factory('e4'))
+        print("aaaaaaaaaaaaaaaaaaa\n" + str(manager.get_authorized_moves()) + "\nbbbbbbbbbbbbbbbbbbbbbb")
+        self.assertCountEqual([
+            position_factory('d3'),
+            position_factory('e3'),
+            position_factory('f3'),
+            position_factory('d5'),
+            position_factory('e5'),
+            position_factory('f5'),
+            position_factory('d4'),
+            position_factory('f4'),
+        ], manager.get_authorized_moves())
+
+    def test_28_should_return_queen_authorized_moves_when_surrounded_by_current_player_pieces(self):
+        board = Board(
+            situation={'e4': 'bq', 'd3': 'bp', 'd5': 'bp', 'f3': 'bp', 'f5': 'bp', 'e3': 'bp', 'e5': 'bp', 'd4': 'bp',
+                       'f4': 'bp', })
         manager = GameManager(board=board)
         manager.select_position(position_factory('e4'))
         self.assertCountEqual([], manager.get_authorized_moves())
