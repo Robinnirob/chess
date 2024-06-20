@@ -31,6 +31,11 @@ class Board:
     def get_pieces_taken(self, color: PieceColor):
         return [piece for piece in self.pieces_taken if piece.color == color]
 
+    def promote(self, position, piece_name):
+        if self.piece_positions[position] is None:
+            raise ValueError(f'Position {position} as no piece')
+        self.piece_positions[position] = piece_name
+
 
 def _to_piece_positions(situation: Dict[str, str]):
     return {position_factory(k): piece_factory(v) for k, v in situation.items()}

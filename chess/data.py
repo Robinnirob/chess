@@ -10,6 +10,9 @@ class PieceColor(Enum):
     BLACK = 0
     WHITE = 1
 
+    def opposite_color(self):
+        return PieceColor.BLACK if self == PieceColor.WHITE else PieceColor.WHITE
+
 
 def piece_color_from_str(value: str) -> PieceColor:
     return PieceColor.BLACK if value == 'b' else PieceColor.WHITE
@@ -67,6 +70,9 @@ class Position:
 
     def belong_to_board(self) -> bool:
         return BOARD_SIZE > self.col >= 0 and BOARD_SIZE > self.row >= 0
+
+    def is_last_position(self, color):
+        return (self.row == 7 and color == PieceColor.WHITE) or (self.row == 0 and color == PieceColor.BLACK)
 
 
 def position_factory(info: str):

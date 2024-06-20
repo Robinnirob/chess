@@ -1,8 +1,10 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, Toplevel, Label, Entry, Button
+from tkinter.messagebox import askyesno
+from tkinter.ttk import Style
 
 from chess.board import Board
-from chess.data import BOARD_SIZE, SQUARE_SIZE, Position, Piece, PieceColor
+from chess.data import BOARD_SIZE, SQUARE_SIZE, Position, Piece, PieceColor, PieceName
 from chess.game_manager import GameManager
 
 
@@ -41,6 +43,9 @@ class MainWindow:
         self.entry.pack(side=tk.LEFT, padx=5)
 
         submit_button = tk.Button(form_frame, text="Valider", command=self.on_form_submit)
+        submit_button.pack(side=tk.LEFT, padx=5)
+
+        submit_button = tk.Button(form_frame, text="Open popup", command=self.open_promotion_popup)
         submit_button.pack(side=tk.LEFT, padx=5)
 
         info_frame = tk.Frame(self.root)
@@ -91,7 +96,9 @@ class MainWindow:
         col = y
         position = Position(row=row, col=col)
         self.game_manager.do_action(position)
-        # info['text'] = "Ce coup n'est pas autorisé"
+        if self.game_manager.is_waiting_promotion_info():
+            piece_name = self.open_promotion_popup()
+            self.game_manager.promote_to(piece_name)
         self.draw_board()
         print(f"Clic sur la case {position}")
 
@@ -100,3 +107,55 @@ class MainWindow:
         entered_text = self.entry.get()
         print(f"Texte saisi : {entered_text}")
         messagebox.showinfo("Formulaire soumis", f"Vous avez saisi : {entered_text}")
+
+    def open_promotion_popup(self):
+        dialog = PromotionDialog(self.root)
+        self.root.wait_window(dialog.root)
+        return dialog.data
+
+
+class PromotionDialog(object):
+    def __init__(self, parent):
+        self.data = None
+
+        self.root = Toplevel(parent)
+        self.entry = Entry(self.root)
+        self.entry.pack()
+
+        style = Style()
+        style.configure('W.TButton', font=('calibri', 10, 'bold', 'underline'), foreground='red')
+
+        queen = Button(self.root, text='Queen', command=self.queen_selected)
+        queen.pack()
+
+        knight = Button(self.root, text='Knight', command=self.knight_selected)
+        knight.pack()
+
+        rook = Button(self.root, text='Rook', command=self.rook_selected)
+        rook.pack()
+
+        bishop = Button(self.root, text='Bishop', command=self.bishop_selected)
+        bishop.pack()
+
+        self.root.wait_visibility()
+        self.root.grab_set()
+        self.root.transient(parent)
+
+        self.parent = parent
+
+    def queen_selected(self):
+        self.piece_name_selected(PieceName.QUEEN)
+
+    def knight_selected(self):
+        self.piece_name_selected(PieceName.NIGHT)
+
+    def rook_selected(self):
+        self.piece_name_selected(PieceName.ROOK)
+
+    def bishop_selected(self):
+        self.piece_name_selected(PieceName.BISHOP)
+
+    def piece_name_selected(self, piece_name: PieceName):
+        self.data = piece_name
+        self.root.grab_release()
+        self.root.destroy()

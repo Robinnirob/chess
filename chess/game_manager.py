@@ -12,6 +12,7 @@ class GameManager:
     selected_position: Position = None
     selected_piece: Piece = None
     move_history: List[Move] = []
+    piece_to_promote_position: Position = None
 
     def __init__(self, board: Board, current_player: PieceColor = PieceColor.WHITE):
         self.current_player = current_player
@@ -46,6 +47,8 @@ class GameManager:
         self.board.move(move=move)
         self.move_history.append(move)
         self.select_position(None)
+        if move.piece_moved.name == PieceName.PAWN and move.target.is_last_position(move.piece_moved.color):
+            self.piece_to_promote_position = move.target
         self.current_player = PieceColor.BLACK if self.current_player == PieceColor.WHITE else PieceColor.WHITE
 
     def select_position(self, position: Optional[Position]):
@@ -250,3 +253,10 @@ class GameManager:
             piece_taken_position=my_piece_taken_position,
             is_two_step_pawn_move=is_two_step_pawn_move
         )
+
+    def is_waiting_promotion_info(self):
+        return self.piece_to_promote_position is not None
+
+    def promote_to(self, piece_name):
+        self.board.promote(self.piece_to_promote_position, Piece(self.current_player.opposite_color(), piece_name))
+        self.piece_to_promote_position = None
