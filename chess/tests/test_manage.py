@@ -173,3 +173,40 @@ class TestManage(unittest.TestCase):
         manager = GameManager(board=board)
         manager.select_position(position_factory('e4'))
         self.assertCountEqual([], manager.get_authorized_moves())
+
+    def test_20_should_return_rook_authorized_moves_when_position_empty(self):
+        board = Board(situation={'e4': 'wr'})
+        manager = GameManager(board=board)
+        manager.select_position(position_factory('e4'))
+        print(str(manager.get_authorized_moves()))
+        self.assertCountEqual([
+            position_factory('e1'),
+            position_factory('e2'),
+            position_factory('e3'),
+            position_factory('e5'),
+            position_factory('e6'),
+            position_factory('e7'),
+            position_factory('e8'),
+            position_factory('a4'),
+            position_factory('b4'),
+            position_factory('c4'),
+            position_factory('d4'),
+            position_factory('f4'),
+            position_factory('g4'),
+            position_factory('h4'),
+        ], manager.get_authorized_moves())
+    def test_21_should_return_rook_authorized_moves_when_surrounded_by_opponent_pieces(self):
+        board = Board(situation={'e4': 'wr', 'e3': 'bp', 'e5': 'bp', 'd4': 'bp', 'f4': 'bp', })
+        manager = GameManager(board=board)
+        manager.select_position(position_factory('e4'))
+        self.assertCountEqual([
+            position_factory('e3'),
+            position_factory('e5'),
+            position_factory('d4'),
+            position_factory('f4'),
+        ], manager.get_authorized_moves())
+    def test_22_should_return_rook_authorized_moves_when_surrounded_by_current_player_pieces(self):
+        board = Board(situation={'e4': 'br', 'e3': 'bp', 'e5': 'bp', 'd4': 'bp', 'f4': 'bp', })
+        manager = GameManager(board=board)
+        manager.select_position(position_factory('e4'))
+        self.assertCountEqual([], manager.get_authorized_moves())

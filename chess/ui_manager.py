@@ -55,7 +55,7 @@ class MainWindow:
         self.canvas.delete("all")
         for y in range(BOARD_SIZE):
             for x in range(BOARD_SIZE):
-                row = BOARD_SIZE - x
+                row = BOARD_SIZE - x - 1
                 col = y
                 position = Position(row=row, col=col)
                 selected_position = self.game_manager.get_selected_position()
@@ -87,7 +87,7 @@ class MainWindow:
     def on_square_click(self, event):
         y = event.x // SQUARE_SIZE
         x = event.y // SQUARE_SIZE
-        row = BOARD_SIZE - x
+        row = BOARD_SIZE - x - 1
         col = y
         position = Position(row=row, col=col)
         self.game_manager.do_action(position)

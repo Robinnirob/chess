@@ -3,7 +3,7 @@ from typing import List, Optional
 from chess.board import Board
 from chess.data import PieceColor, Position, PieceName, Piece
 
-INITIAL_PAWN_ROW_BY_COLOR = {PieceColor.BLACK: 7, PieceColor.WHITE: 2}
+INITIAL_PAWN_ROW_BY_COLOR = {PieceColor.BLACK: 6, PieceColor.WHITE: 1}
 
 
 class GameManager:
@@ -49,6 +49,8 @@ class GameManager:
             return self.manage_pawn_moves()
         elif selected_piece.name == PieceName.NIGHT:
             return self.manage_knight_moves()
+        elif selected_piece.name == PieceName.ROOK:
+            return self.manage_rook_moves()
         return []
 
     def manage_pawn_moves(self) -> List[Position]:
@@ -74,17 +76,37 @@ class GameManager:
         self.add_if_offset_position_has_not_current_color_piece(result=result, row=1, col=2)
         return result
 
-    def add_if_offset_position_has_no_piece(self, result: List[Position], row: int = 0, col: int = 0):
-        if not self.is_offset_position_has_piece_between(row=row, col=col):
-            result.append(self.selected_position.offset(row=row, col=col))
+    def manage_rook_moves(self):
+        result = []
+        for row_offset in range(1, 8):
+            has_found_piece_or_edge = self.add_if_offset_position_has_not_current_color_piece(result=result, row=row_offset)
+            if has_found_piece_or_edge: break
+        for row_offset in range(-1, -8, -1):
+            has_found_piece_or_edge = self.add_if_offset_position_has_not_current_color_piece(result=result, row=row_offset)
+            if has_found_piece_or_edge: break
+        for col_offset in range(1, 8):
+            has_found_piece_or_edge = self.add_if_offset_position_has_not_current_color_piece(result=result, col=col_offset)
+            if has_found_piece_or_edge: break
+        for col_offset in range(-1, -8, -1):
+            has_found_piece_or_edge = self.add_if_offset_position_has_not_current_color_piece(result=result, col=col_offset)
+            if has_found_piece_or_edge: break
 
-    def add_if_offset_position_has_not_current_color_piece(self, result: List[Position], row: int = 0, col: int = 0):
-        if not self.is_offset_position_has_current_color_piece(row=row, col=col):
-            result.append(self.selected_position.offset(row=row, col=col))
+        return result
 
-    def add_if_offset_position_has_opponent_piece(self, result: List[Position], row: int = 0, col: int = 0):
-        if self.is_offset_position_has_opponent_piece(row=row, col=col):
+    def add_if_offset_position_has_no_piece(self, result: List[Position], row: int = 0, col: int = 0) -> bool:
+        if self.is_offset_belong_to_board(row=row, col=col) and not self.is_offset_position_has_piece_between(row=row, col=col):
             result.append(self.selected_position.offset(row=row, col=col))
+        return self.is_offset_position_has_piece(row=row, col=col) or not self.is_offset_belong_to_board(row=row, col=col)
+
+    def add_if_offset_position_has_not_current_color_piece(self, result: List[Position], row: int = 0, col: int = 0) -> bool:
+        if self.is_offset_belong_to_board(row=row, col=col) and self.is_offset_belong_to_board(row=row, col=col) and not self.is_offset_position_has_current_color_piece(row=row, col=col):
+            result.append(self.selected_position.offset(row=row, col=col))
+        return self.is_offset_position_has_piece(row=row, col=col) or not self.is_offset_belong_to_board(row=row, col=col)
+
+    def add_if_offset_position_has_opponent_piece(self, result: List[Position], row: int = 0, col: int = 0) -> bool:
+        if self.is_offset_belong_to_board(row=row, col=col) and self.is_offset_position_has_opponent_piece(row=row, col=col):
+            result.append(self.selected_position.offset(row=row, col=col))
+        return self.is_offset_position_has_piece(row=row, col=col) or not self.is_offset_belong_to_board(row=row, col=col)
 
     def is_offset_position_has_piece_between(self, row: int = 0, col: int = 0) -> bool:
         if row != 0:
@@ -111,3 +133,12 @@ class GameManager:
         selected_piece = self.get_selected_piece()
         piece_on_offset_position = self.board.get_piece(self.selected_position.offset(row=row, col=col))
         return piece_on_offset_position is not None and piece_on_offset_position.color == selected_piece.color
+
+    def is_offset_position_has_piece(self, row: int = 0, col: int = 0) -> bool:
+        piece_on_offset_position = self.board.get_piece(self.selected_position.offset(row=row, col=col))
+        return piece_on_offset_position is not None
+
+    def is_offset_belong_to_board(self, row: int = 0, col: int = 0):
+        return self.selected_position.offset(row=row, col=col).belong_to_board()
+
+

@@ -63,11 +63,14 @@ class Position:
     def offset(self, col: int = 0, row: int = 0):
         return Position(self.col + col, self.row + row)
 
+    def belong_to_board(self) -> bool:
+        return BOARD_SIZE > self.col >= 0 and BOARD_SIZE > self.row >= 0
+
 
 def position_factory(info: str):
     return Position(
         col=ord(info[0]) - ord('a'),
-        row=int(info[1])
+        row=int(info[1]) - 1
     )
 
 
