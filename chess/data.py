@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
 BOARD_SIZE = 8
 SQUARE_SIZE = 60
@@ -52,6 +53,7 @@ def piece_name_from_str(value: str):
         return PieceName.KING
     raise ValueError(f'{value} is not a valid piece name')
 
+
 @dataclass(frozen=True)
 class Position:
     col: int
@@ -84,6 +86,16 @@ class Piece:
 
     def __str__(self):
         return f"{self.name.name} {self.color.name}"
+
+
+@dataclass(frozen=True)
+class Move:
+    source: Position
+    target: Position
+    piece_moved: Piece
+    piece_taken_position: Optional[Position] = None
+    piece_taken: Optional[Piece] = None
+    is_two_step_pawn_move: bool = False
 
 
 def piece_factory(info: str):

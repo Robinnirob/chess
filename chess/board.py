@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from chess.data import Position, Piece, position_factory, piece_factory, PieceColor
+from chess.data import Position, Piece, position_factory, piece_factory, PieceColor, Move
 
 
 class Board:
@@ -18,17 +18,15 @@ class Board:
     def get_piece(self, position: Position):
         return self.piece_positions[position] if position in self.piece_positions else None
 
-    def move(self, source: Position, target: Position):
-        if source not in self.piece_positions:
-            raise ValueError(f'No piece found in {source} on the board')
+    def move(self, move: Move):
+        if move.source not in self.piece_positions:
+            raise ValueError(f'No piece found in {move.source} on the board')
 
-        piece = self.piece_positions[source]
-        del self.piece_positions[source]
-        if target in self.piece_positions: self.pieces_taken.append(self.piece_positions[target])
-        self.piece_positions[target] = piece
-
-    def move_as_str(self, source: str, target: str):
-        self.move(position_factory(source), position_factory(target))
+        piece = self.piece_positions[move.source]
+        if move.piece_taken_position is not None: del self.piece_positions[move.piece_taken_position]
+        del self.piece_positions[move.source]
+        if move.target in self.piece_positions: self.pieces_taken.append(self.piece_positions[move.target])
+        self.piece_positions[move.target] = piece
 
     def get_pieces_taken(self, color: PieceColor):
         return [piece for piece in self.pieces_taken if piece.color == color]

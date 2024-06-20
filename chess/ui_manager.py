@@ -59,7 +59,7 @@ class MainWindow:
                 col = y
                 position = Position(row=row, col=col)
                 selected_position = self.game_manager.get_selected_position()
-                authorized_positions = self.game_manager.get_authorized_moves()
+                authorized_positions = self.game_manager.get_authorized_target_position()
 
                 color = "white" if (x + y) % 2 == 0 else "gray"
                 color = "green" if position in authorized_positions else color
