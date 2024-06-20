@@ -97,3 +97,19 @@ class TestManage(unittest.TestCase):
         manager = GameManager(board=board)
         manager.select_position(position_factory('e4'))
         self.assertCountEqual([], manager.get_authorized_moves())
+
+    def test_should_return_black_knight_authorized_moves_when_position_filled_with_current_player_piece(self):
+        board = Board(situation={
+            'e4': 'bn',
+            'c3': 'bp',
+            'c5': 'bp',
+            'd2': 'bp',
+            'd6': 'bp',
+            'f2': 'bp',
+            'f6': 'bp',
+            'g3': 'bp',
+            'g5': 'bp',
+        })
+        manager = GameManager(board=board)
+        manager.select_position(position_factory('e4'))
+        self.assertCountEqual([], manager.get_authorized_moves())
