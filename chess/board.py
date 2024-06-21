@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from chess.data import Position, Piece, position_factory, piece_factory, PieceColor, Move, PieceName
+from chess.data import Position, Piece, position_factory, piece_factory, PieceColor, Move, PieceName, INITIAL_KING_ROW_BY_COLOR
 
 
 class Board:
@@ -26,6 +26,14 @@ class Board:
         del self.piece_positions[move.source]
         if move.target in self.piece_positions: self.pieces_taken.append(self.piece_positions[move.target])
         self.piece_positions[move.target] = piece
+
+        if move.is_left_castling:
+            del self.piece_positions[Position(col=0, row=INITIAL_KING_ROW_BY_COLOR[piece.color])]
+            self.piece_positions[Position(col=3, row=INITIAL_KING_ROW_BY_COLOR[piece.color])] = Piece(piece.color, PieceName.ROOK)
+
+        if move.is_right_castling:
+            del self.piece_positions[Position(col=7, row=INITIAL_KING_ROW_BY_COLOR[piece.color])]
+            self.piece_positions[Position(col=5, row=INITIAL_KING_ROW_BY_COLOR[piece.color])] = Piece(piece.color, PieceName.ROOK)
 
     def get_pieces_taken(self, color: PieceColor):
         return [piece for piece in self.pieces_taken if piece.color == color]

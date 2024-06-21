@@ -1,9 +1,7 @@
 from typing import List, Optional, Set
 
 from chess.board import Board
-from chess.data import PieceColor, Position, PieceName, Piece, Move
-
-INITIAL_PAWN_ROW_BY_COLOR = {PieceColor.BLACK: 6, PieceColor.WHITE: 1}
+from chess.data import PieceColor, Position, PieceName, Piece, Move, INITIAL_PAWN_ROW_BY_COLOR, INITIAL_KING_ROW_BY_COLOR
 
 
 class GameManager:
@@ -36,13 +34,14 @@ class GameManager:
 
     def move(self, position: Position):
         move = None
-        for authorized_move in self.get_authorized_moves():
+        authorized_moves = self.get_authorized_moves()
+        for authorized_move in authorized_moves:
             if authorized_move.target == position:
                 move = authorized_move
                 break
 
         if move is None:
-            raise ValueError("Target position is not in authorized moves")
+            raise ValueError(f"Target position is not in authorized moves: \n\t{str("\n\t".join([str(authorized_move) for authorized_move in authorized_moves]))}")
 
         self.board.move(move=move)
         self.move_history.append(move)
@@ -60,8 +59,11 @@ class GameManager:
         moves = self.get_authorized_moves()
         for move in moves.copy():
             cloned_board = self.board.copy()
-            cloned_board.move(move)
-            if self.is_king_threated(cloned_board, king_color=self.current_player):
+            try:
+                cloned_board.move(move)
+                if self.is_king_threated(cloned_board, king_color=self.current_player):
+                    moves.remove(move)
+            except:
                 moves.remove(move)
         return [move.target for move in moves]
 
@@ -141,34 +143,49 @@ class GameManager:
 
     def manage_rook_moves(self, board: Board, position: Position = None) -> List[Move]:
         my_position = position if position is not None else self.selected_position
+        piece = board.get_piece(my_position)
         result = []
+        is_left_rook_move = Position(INITIAL_KING_ROW_BY_COLOR[piece.color], 0) == my_position
+        is_right_rook_move = Position(INITIAL_KING_ROW_BY_COLOR[piece.color], 7) == my_position
         for row_offset in range(1, 8):
             has_found_piece_or_edge = self.add_if_offset_position_has_not_current_color_piece(
                 board=board,
                 position=my_position,
                 result=result,
-                row=row_offset)
+                row=row_offset,
+                is_left_break_castling=is_left_rook_move,
+                is_right_break_castling=is_right_rook_move,
+            )
             if has_found_piece_or_edge: break
         for row_offset in range(-1, -8, -1):
             has_found_piece_or_edge = self.add_if_offset_position_has_not_current_color_piece(
                 board=board,
                 position=my_position,
                 result=result,
-                row=row_offset)
+                row=row_offset,
+                is_left_break_castling=is_left_rook_move,
+                is_right_break_castling=is_right_rook_move,
+            )
             if has_found_piece_or_edge: break
         for col_offset in range(1, 8):
             has_found_piece_or_edge = self.add_if_offset_position_has_not_current_color_piece(
                 board=board,
                 position=my_position,
                 result=result,
-                col=col_offset)
+                col=col_offset,
+                is_left_break_castling=is_left_rook_move,
+                is_right_break_castling=is_right_rook_move,
+            )
             if has_found_piece_or_edge: break
         for col_offset in range(-1, -8, -1):
             has_found_piece_or_edge = self.add_if_offset_position_has_not_current_color_piece(
                 board=board,
                 position=my_position,
                 result=result,
-                col=col_offset)
+                col=col_offset,
+                is_left_break_castling=is_left_rook_move,
+                is_right_break_castling=is_right_rook_move,
+            )
             if has_found_piece_or_edge: break
 
         return result
@@ -293,20 +310,36 @@ class GameManager:
         my_position = position if position is not None else self.selected_position
         selected_piece = self.board.get_piece(my_position)
         result = []
-        self.add_if_offset_position_has_not_current_color_piece(board=board, position=my_position, result=result, row=1, col=0)
-        self.add_if_offset_position_has_not_current_color_piece(board=board, position=my_position, result=result, row=-1, col=0)
-        self.add_if_offset_position_has_not_current_color_piece(board=board, position=my_position, result=result, row=0, col=1)
-        self.add_if_offset_position_has_not_current_color_piece(board=board, position=my_position, result=result, row=0, col=-1)
-        self.add_if_offset_position_has_not_current_color_piece(board=board, position=my_position, result=result, row=1, col=1)
-        self.add_if_offset_position_has_not_current_color_piece(board=board, position=my_position, result=result, row=1, col=-1)
-        self.add_if_offset_position_has_not_current_color_piece(board=board, position=my_position, result=result, row=-1, col=1)
-        self.add_if_offset_position_has_not_current_color_piece(board=board, position=my_position, result=result, row=-1, col=-1)
+        self.add_if_offset_position_has_not_current_color_piece(board=board, position=my_position, result=result, row=1, col=0, is_break_castling=True)
+        self.add_if_offset_position_has_not_current_color_piece(board=board, position=my_position, result=result, row=-1, col=0, is_break_castling=True)
+        self.add_if_offset_position_has_not_current_color_piece(board=board, position=my_position, result=result, row=0, col=1, is_break_castling=True)
+        self.add_if_offset_position_has_not_current_color_piece(board=board, position=my_position, result=result, row=0, col=-1, is_break_castling=True)
+        self.add_if_offset_position_has_not_current_color_piece(board=board, position=my_position, result=result, row=1, col=1, is_break_castling=True)
+        self.add_if_offset_position_has_not_current_color_piece(board=board, position=my_position, result=result, row=1, col=-1, is_break_castling=True)
+        self.add_if_offset_position_has_not_current_color_piece(board=board, position=my_position, result=result, row=-1, col=1, is_break_castling=True)
+        self.add_if_offset_position_has_not_current_color_piece(board=board, position=my_position, result=result, row=-1, col=-1, is_break_castling=True)
         _, filtered_position = self.filter_position_threated(
             board=self.board,
             positions=[move.target for move in result],
             color=selected_piece.color.opposite_color()
         )
-        return [move for move in result if move.target in filtered_position]
+
+        final_moves = [move for move in result if move.target in filtered_position]
+        if (my_position == Position(row=INITIAL_KING_ROW_BY_COLOR[self.current_player], col=4)):
+            if (
+                    board.get_piece(Position(row=INITIAL_KING_ROW_BY_COLOR[self.current_player], col=1)) is None and
+                    board.get_piece(Position(row=INITIAL_KING_ROW_BY_COLOR[self.current_player], col=2)) is None and
+                    board.get_piece(Position(row=INITIAL_KING_ROW_BY_COLOR[self.current_player], col=3)) is None and
+                    len([move for move in self.move_history if move.piece_moved.color == selected_piece.color and move.is_left_castling_broken]) == 0
+            ):
+                final_moves.append(self.move_factory(Position(row=INITIAL_KING_ROW_BY_COLOR[self.current_player], col=2), is_left_castling=True))
+            if (
+                    board.get_piece(Position(row=INITIAL_KING_ROW_BY_COLOR[self.current_player], col=5)) is None and
+                    board.get_piece(Position(row=INITIAL_KING_ROW_BY_COLOR[self.current_player], col=6)) is None and
+                    len([move for move in self.move_history if move.piece_moved.color == selected_piece.color and move.is_right_casting_broken]) == 0
+            ):
+                final_moves.append(self.move_factory(Position(row=INITIAL_KING_ROW_BY_COLOR[self.current_player], col=6), is_right_castling=True))
+        return final_moves
 
     def manage_king_threat(self, position: Position = None) -> List[Position]:
         result = [
@@ -336,12 +369,29 @@ class GameManager:
         return (self.is_offset_position_has_piece(board=board, position=position, row=row, col=col) or
                 not self.is_offset_belong_to_board(position=position, row=row, col=col))
 
-    def add_if_offset_position_has_not_current_color_piece(self, board: Board, position: Position, result: List[Move], row: int = 0, col: int = 0, is_two_step_pawn_move: bool = False) -> bool:
+    def add_if_offset_position_has_not_current_color_piece(
+            self,
+            board: Board,
+            position: Position,
+            result: List[Move],
+            row: int = 0,
+            col: int = 0,
+            is_two_step_pawn_move: bool = False,
+            is_left_break_castling: bool = False,
+            is_right_break_castling: bool = False,
+            is_break_castling: bool = False,
+    ) -> bool:
         if (self.is_offset_belong_to_board(position=position, row=row, col=col) and
                 self.is_offset_belong_to_board(position=position, row=row, col=col) and
                 not self.is_offset_position_has_current_color_piece(board=board, position=position, row=row, col=col)):
             target_position = position.offset(row=row, col=col)
-            result.append(self.move_factory(target_position, self.board.get_piece(target_position), is_two_step_pawn_move=is_two_step_pawn_move))
+            result.append(
+                self.move_factory(
+                    target_position, self.board.get_piece(target_position),
+                    is_two_step_pawn_move=is_two_step_pawn_move,
+                    is_left_castling_broken=is_break_castling or is_left_break_castling,
+                    is_right_castling_broken=is_break_castling or is_right_break_castling,
+                ))
         return (self.is_offset_position_has_piece(board=board, position=position, row=row, col=col) or
                 not self.is_offset_belong_to_board(position=position, row=row, col=col))
 
@@ -386,7 +436,17 @@ class GameManager:
     def is_offset_belong_to_board(self, position: Position, row: int = 0, col: int = 0):
         return position.offset(row=row, col=col).belong_to_board()
 
-    def move_factory(self, target: Position, piece_taken: Piece, piece_taken_position: Optional[Position] = None, is_two_step_pawn_move: bool = False) -> Move:
+    def move_factory(
+            self,
+            target: Position,
+            piece_taken: Optional[Piece] = None,
+            piece_taken_position: Optional[Position] = None,
+            is_two_step_pawn_move: bool = False,
+            is_left_castling: bool = False,
+            is_right_castling: bool = False,
+            is_left_castling_broken: bool = False,
+            is_right_castling_broken: bool = False,
+    ) -> Move:
         my_piece_taken_position = None if piece_taken is None else target
         my_piece_taken_position = piece_taken_position if piece_taken_position is not None else my_piece_taken_position
         return Move(
@@ -395,7 +455,11 @@ class GameManager:
             piece_moved=self.get_selected_piece(),
             piece_taken=piece_taken,
             piece_taken_position=my_piece_taken_position,
-            is_two_step_pawn_move=is_two_step_pawn_move
+            is_two_step_pawn_move=is_two_step_pawn_move,
+            is_left_castling=is_left_castling,
+            is_right_castling=is_right_castling,
+            is_left_castling_broken=is_left_castling_broken,
+            is_right_casting_broken=is_right_castling_broken,
         )
 
     def is_waiting_promotion_info(self):

@@ -2,9 +2,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
-BOARD_SIZE = 8
-SQUARE_SIZE = 60
-
 
 class PieceColor(Enum):
     BLACK = 0
@@ -102,6 +99,10 @@ class Move:
     piece_taken_position: Optional[Position] = None
     piece_taken: Optional[Piece] = None
     is_two_step_pawn_move: bool = False
+    is_left_castling_broken: bool = False
+    is_right_casting_broken: bool = False
+    is_left_castling: bool = False
+    is_right_castling: bool = False
 
 
 def piece_factory(info: str):
@@ -109,3 +110,10 @@ def piece_factory(info: str):
         color=piece_color_from_str(info[0]),
         name=piece_name_from_str(info[1])
     )
+
+
+BOARD_SIZE = 8
+SQUARE_SIZE = 60
+
+INITIAL_PAWN_ROW_BY_COLOR = {PieceColor.BLACK: 6, PieceColor.WHITE: 1}
+INITIAL_KING_ROW_BY_COLOR = {PieceColor.BLACK: 7, PieceColor.WHITE: 0}
