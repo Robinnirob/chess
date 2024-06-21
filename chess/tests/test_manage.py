@@ -204,7 +204,6 @@ class TestManage(unittest.TestCase):
         board = Board(situation={'e4': 'wr'})
         manager = GameManager(board=board)
         manager.select_position(position_factory('e4'))
-        print(str(manager.get_authorized_target_position()))
         self.assertCountEqual([
             position_factory('e1'),
             position_factory('e2'),
@@ -356,16 +355,7 @@ class TestManage(unittest.TestCase):
                        'f4': 'bn'})
         manager = GameManager(board=board)
         manager.select_position(position_factory('e4'))
-        self.assertCountEqual([
-            position_factory('d3'),
-            position_factory('e3'),
-            position_factory('f3'),
-            position_factory('d5'),
-            position_factory('e5'),
-            position_factory('f5'),
-            position_factory('d4'),
-            position_factory('f4'),
-        ], manager.get_authorized_target_position())
+        self.assertCountEqual([], manager.get_authorized_target_position())
 
     def test_33_should_return_king_authorized_moves_when_surrounded_by_current_player_pieces(self):
         board = Board(
@@ -374,3 +364,53 @@ class TestManage(unittest.TestCase):
         manager = GameManager(board=board)
         manager.select_position(position_factory('e4'))
         self.assertCountEqual([], manager.get_authorized_target_position())
+
+    def test_34_should_position_not_threated_when_board_empty(self):
+        board = Board(situation={})
+        manager = GameManager(board=board)
+        position = position_factory('e4')
+
+        self.assertEqual((set(), {position}), manager.filter_position_threated(positions=[position], color=PieceColor.WHITE))
+        self.assertEqual((set(), {position}), manager.filter_position_threated(positions=[position], color=PieceColor.BLACK))
+
+    def test_35_should_position_threated_when_pawn_threated_position(self):
+        board = Board(situation={'d5': 'bp', 'd3': 'wp'})
+        manager = GameManager(board=board)
+        position = position_factory('e4')
+        self.assertEqual(({position}, set()), manager.filter_position_threated(positions=[position], color=PieceColor.WHITE))
+        self.assertEqual(({position}, set()), manager.filter_position_threated(positions=[position], color=PieceColor.BLACK))
+
+    def test_36_should_position_threated_when_knight_threated_position(self):
+        board = Board(situation={'d6': 'bn', 'f6': 'wn'})
+        manager = GameManager(board=board)
+        position = position_factory('e4')
+        self.assertEqual(({position}, set()), manager.filter_position_threated(positions=[position], color=PieceColor.WHITE))
+        self.assertEqual(({position}, set()), manager.filter_position_threated(positions=[position], color=PieceColor.BLACK))
+
+    def test_37_should_position_threated_when_rook_threated_position(self):
+        board = Board(situation={'e6': 'br', 'a4': 'wr'})
+        manager = GameManager(board=board)
+        position = position_factory('e4')
+        self.assertEqual(({position}, set()), manager.filter_position_threated(positions=[position], color=PieceColor.WHITE))
+        self.assertEqual(({position}, set()), manager.filter_position_threated(positions=[position], color=PieceColor.BLACK))
+
+    def test_38_should_position_threated_when_bishop_threated_position(self):
+        board = Board(situation={'f5': 'bb', 'f3': 'wb'})
+        manager = GameManager(board=board)
+        position = position_factory('e4')
+        self.assertEqual(({position}, set()), manager.filter_position_threated(positions=[position], color=PieceColor.WHITE))
+        self.assertEqual(({position}, set()), manager.filter_position_threated(positions=[position], color=PieceColor.BLACK))
+
+    def test_39_should_position_threated_when_queen_threated_position(self):
+        board = Board(situation={'e6': 'bq', 'a4': 'wq'})
+        manager = GameManager(board=board)
+        position = position_factory('e4')
+        self.assertEqual(({position}, set()), manager.filter_position_threated(positions=[position], color=PieceColor.WHITE))
+        self.assertEqual(({position}, set()), manager.filter_position_threated(positions=[position], color=PieceColor.BLACK))
+
+    def test_40_should_position_threated_when_king_threated_position(self):
+        board = Board(situation={'f5': 'bk', 'f3': 'wk'})
+        manager = GameManager(board=board)
+        position = position_factory('e4')
+        self.assertEqual(({position}, set()), manager.filter_position_threated(positions=[position], color=PieceColor.WHITE))
+        self.assertEqual(({position}, set()), manager.filter_position_threated(positions=[position], color=PieceColor.BLACK))

@@ -1,6 +1,6 @@
 import unittest
 
-from chess.board import Board
+from chess.board import Board, to_piece_positions
 from chess.data import PieceColor, position_factory, piece_factory, Move
 
 
@@ -43,6 +43,12 @@ class TestBoard(unittest.TestCase):
         board.move(Move(position_factory('b7'), position_factory('c5'), piece_factory('bp')))
         pieces = board.get_pieces_taken(PieceColor.WHITE)
         self.assertEqual([piece_factory('wp')], pieces)
+
+
+    def test_should_return_all_black_pieces_position(self):
+        board = Board(situation={'b7': 'bp', 'c5': 'wp'})
+        self.assertEqual(to_piece_positions({'b7': 'bp'}), board.get_pieces_position(PieceColor.BLACK))
+        self.assertEqual(to_piece_positions({'c5': 'wp'}), board.get_pieces_position(PieceColor.WHITE))
 
 
 if __name__ == '__main__':
